@@ -1,0 +1,19 @@
+{
+  "configurations" : [
+    {
+      "id" : "0F36BF22-2F89-435C-948D-A8F2D8E83293",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "uiTestingScreenshotsLifetime" : "keepNever"
+  },
+  "testTargets" : [
+
+  ],
+  "version" : 1
+}
