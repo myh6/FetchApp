@@ -9,11 +9,27 @@
     }
   ],
   "defaultOptions" : {
-    "codeCoverage" : false,
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:Fetch.xcodeproj",
+          "identifier" : "0F63A5F32CBA010300E181E5",
+          "name" : "Fetch"
+        }
+      ]
+    },
+    "testExecutionOrdering" : "random",
     "uiTestingScreenshotsLifetime" : "keepNever"
   },
   "testTargets" : [
-
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:Fetch.xcodeproj",
+        "identifier" : "0F63A5FB2CBA010300E181E5",
+        "name" : "FetchTests"
+      }
+    }
   ],
   "version" : 1
 }

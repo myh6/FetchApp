@@ -23,6 +23,7 @@
 /* Begin PBXFileReference section */
 		0F63A5F42CBA010300E181E5 /* Fetch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Fetch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0F63A5FC2CBA010300E181E5 /* FetchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FetchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0FE290DB2CBA01DA005D1571 /* Fetch.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fetch.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -73,6 +74,7 @@
 		0F63A5EA2CBA010300E181E5 = {
 			isa = PBXGroup;
 			children = (
+				0FE290DB2CBA01DA005D1571 /* Fetch.xctestplan */,
 				0F63A5F62CBA010300E181E5 /* Fetch */,
 				0F63A6002CBA010300E181E5 /* FetchTests */,
 				0F63A5F52CBA010300E181E5 /* Products */,
