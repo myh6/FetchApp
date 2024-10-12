@@ -23,15 +23,30 @@ class RemoteFeedLoader: FeedLoader {
     }
     
     func load(completion: @escaping (FeedLoader.Result) -> Void) {
-        client.get(from: url)
+        client.get(from: url) { result in
+            switch result {
+            case let .failure(error):
+                completion(.failure(error))
+            default:
+                break
+            }
+        }
     }
 }
 
 class HTTPClient {
-    var requestedURL: [URL] = []
+    private var messages = [(requestedURL: URL, completion: (HTTPClient.Result) -> Void)]()
+    typealias Result = Swift.Result<(Data, HTTPURLResponse), Error>
+    var requestedURL: [URL] {
+        messages.map(\.requestedURL)
+    }
     
-    func get(from url: URL) {
-        requestedURL.append(url)
+    func get(from url: URL, completion: @escaping (HTTPClient.Result) -> Void) {
+        messages.append((url, completion))
+    }
+    
+    func complete(with error: NSError, at index: Int = 0) {
+        messages[index].completion(.failure(error))
     }
 }
 
@@ -60,6 +75,25 @@ final class RemoteFeedLoaderTests: XCTestCase {
         sut.load { _ in }
         
         XCTAssertEqual(client.requestedURL, [url, url])
+    }
+    
+    func test_load_deliversErrorOnClientError() {
+        let (sut, client) = makeSUT()
+        let clientError = NSError(domain: "any error", code: 0)
+        let exp = expectation(description: "Wait for complete")
+        
+        sut.load { result in
+            switch result {
+            case let .failure(receivedError):
+                XCTAssertEqual(clientError, receivedError as NSError)
+            default:
+                XCTFail("Expected to complete with \(clientError), but got \(result) instead.")
+            }
+            exp.fulfill()
+        }
+        
+        client.complete(with: clientError)
+        wait(for: [exp], timeout: 1.0)
     }
     
     
