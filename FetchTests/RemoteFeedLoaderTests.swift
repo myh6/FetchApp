@@ -31,8 +31,10 @@ class RemoteFeedLoader: FeedLoader {
             switch result {
             case .failure:
                 completion(.failure(Error.connectivity))
-            default:
-                break
+            case let .success((_, response)):
+                guard response.statusCode == 200 else {
+                    return completion(.failure(Error.invalidData))
+                }
             }
         }
     }
@@ -79,6 +81,16 @@ final class RemoteFeedLoaderTests: XCTestCase {
         }
     }
     
+    func test_load_deliversErrorOnNon200HTTPResponse() {
+        let (sut, client) = makeSUT()
+        let samples = [199, 201, 300, 400, 500]
+
+        samples.enumerated().forEach { (index, code) in
+            expect(sut, toCompleteWith: .failure(RemoteFeedLoader.Error.invalidData)) {
+                client.complete(withStatusCode: code, at: index)
+            }
+        }
+    }
     
     //MARK: - Helpers
     private func makeSUT(url: URL = URL(string: "https://example.com")!, file: StaticString = #file, line: UInt = #line) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
@@ -101,6 +113,11 @@ final class RemoteFeedLoaderTests: XCTestCase {
         
         func complete(with error: NSError, at index: Int = 0) {
             messages[index].completion(.failure(error))
+        }
+        
+        func complete(withStatusCode code: Int, at index: Int = 0) {
+            let response = HTTPURLResponse(url: requestedURL[index], statusCode: code, httpVersion: nil, headerFields: nil)!
+            messages[index].completion(.success((Data(), response)))
         }
     }
     
