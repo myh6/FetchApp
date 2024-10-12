@@ -14,6 +14,10 @@ protocol FeedLoader {
 }
 
 class RemoteFeedLoader: FeedLoader {
+    enum Error: Swift.Error {
+        case invalidData, connectivity
+    }
+    
     let client: HTTPClient
     let url: URL
     
@@ -25,8 +29,8 @@ class RemoteFeedLoader: FeedLoader {
     func load(completion: @escaping (FeedLoader.Result) -> Void) {
         client.get(from: url) { result in
             switch result {
-            case let .failure(error):
-                completion(.failure(error))
+            case .failure:
+                completion(.failure(Error.connectivity))
             default:
                 break
             }
@@ -70,14 +74,14 @@ final class RemoteFeedLoaderTests: XCTestCase {
         let (sut, client) = makeSUT()
         let clientError = NSError(domain: "any error", code: 0)
         
-        expect(sut, toCompleteWith: .failure(clientError)) {
+        expect(sut, toCompleteWith: .failure(RemoteFeedLoader.Error.connectivity)) {
             client.complete(with: clientError)
         }
     }
     
     
     //MARK: - Helpers
-    private func makeSUT(url: URL = URL(string: "https://example.com")!, file: StaticString = #file, line: UInt = #line) -> (sut: FeedLoader, client: HTTPClientSpy) {
+    private func makeSUT(url: URL = URL(string: "https://example.com")!, file: StaticString = #file, line: UInt = #line) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
         let sut = RemoteFeedLoader(client: client, url: url)
         trackForMemoryLeaks(sut, file: file, line: line)
@@ -104,7 +108,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
         return URL(string: "https://any-url.com")!
     }
     
-    private func expect(_ sut: FeedLoader, toCompleteWith expectedResult: FeedLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
+    private func expect(_ sut: RemoteFeedLoader, toCompleteWith expectedResult: RemoteFeedLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let exp = expectation(description: "Wait for completion")
         
         sut.load { receivedResult in
