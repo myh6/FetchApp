@@ -80,20 +80,10 @@ final class RemoteFeedLoaderTests: XCTestCase {
     func test_load_deliversErrorOnClientError() {
         let (sut, client) = makeSUT()
         let clientError = NSError(domain: "any error", code: 0)
-        let exp = expectation(description: "Wait for complete")
         
-        sut.load { result in
-            switch result {
-            case let .failure(receivedError):
-                XCTAssertEqual(clientError, receivedError as NSError)
-            default:
-                XCTFail("Expected to complete with \(clientError), but got \(result) instead.")
-            }
-            exp.fulfill()
+        expect(sut, toCompleteWith: .failure(clientError)) {
+            client.complete(with: clientError)
         }
-        
-        client.complete(with: clientError)
-        wait(for: [exp], timeout: 1.0)
     }
     
     
@@ -108,6 +98,23 @@ final class RemoteFeedLoaderTests: XCTestCase {
     
     private func anyURL() -> URL {
         return URL(string: "https://any-url.com")!
+    }
+    
+    private func expect(_ sut: FeedLoader, toCompleteWith expectedResult: FeedLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
+        let exp = expectation(description: "Wait for completion")
+        
+        sut.load { receivedResult in
+            switch (receivedResult, expectedResult) {
+            case let (.failure(receivedError), .failure(expectedError)):
+                XCTAssertEqual(receivedError as NSError, expectedError as NSError, file: file, line: line)
+            default:
+                break
+            }
+            exp.fulfill()
+        }
+        
+        action()
+        wait(for: [exp], timeout: 1.0)
     }
     
     func trackForMemoryLeaks(_ instance: AnyObject, file: StaticString = #file, line: UInt = #line) {
