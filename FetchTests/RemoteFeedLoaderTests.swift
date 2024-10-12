@@ -34,20 +34,9 @@ class RemoteFeedLoader: FeedLoader {
     }
 }
 
-class HTTPClient {
-    private var messages = [(requestedURL: URL, completion: (HTTPClient.Result) -> Void)]()
+protocol HTTPClient {
     typealias Result = Swift.Result<(Data, HTTPURLResponse), Error>
-    var requestedURL: [URL] {
-        messages.map(\.requestedURL)
-    }
-    
-    func get(from url: URL, completion: @escaping (HTTPClient.Result) -> Void) {
-        messages.append((url, completion))
-    }
-    
-    func complete(with error: NSError, at index: Int = 0) {
-        messages[index].completion(.failure(error))
-    }
+    func get(from url: URL, completion: @escaping (Result) -> Void)
 }
 
 final class RemoteFeedLoaderTests: XCTestCase {
@@ -88,12 +77,27 @@ final class RemoteFeedLoaderTests: XCTestCase {
     
     
     //MARK: - Helpers
-    private func makeSUT(url: URL = URL(string: "https://example.com")!, file: StaticString = #file, line: UInt = #line) -> (sut: FeedLoader, client: HTTPClient) {
-        let client = HTTPClient()
+    private func makeSUT(url: URL = URL(string: "https://example.com")!, file: StaticString = #file, line: UInt = #line) -> (sut: FeedLoader, client: HTTPClientSpy) {
+        let client = HTTPClientSpy()
         let sut = RemoteFeedLoader(client: client, url: url)
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(client, file: file, line: line)
         return (sut, client)
+    }
+    
+    class HTTPClientSpy: HTTPClient {
+        private var messages = [(requestedURL: URL, completion: (HTTPClient.Result) -> Void)]()
+        var requestedURL: [URL] {
+            messages.map(\.requestedURL)
+        }
+        
+        func get(from url: URL, completion: @escaping (HTTPClient.Result) -> Void) {
+            messages.append((url, completion))
+        }
+        
+        func complete(with error: NSError, at index: Int = 0) {
+            messages[index].completion(.failure(error))
+        }
     }
     
     private func anyURL() -> URL {
