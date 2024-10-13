@@ -7,8 +7,7 @@
 
 import Foundation
 
-struct RecipeItemMapper {
-    private init() {}
+enum RecipeItemMapper {
     private struct Root: Decodable {
         let recipes: [RemoteRecipeItem]
     }
