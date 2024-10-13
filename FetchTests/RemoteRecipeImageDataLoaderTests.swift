@@ -17,10 +17,10 @@ protocol RecipeImageDataLoader {
     typealias Result = Swift.Result<Data, Error>
     
     @discardableResult
-    func loadImageDate(from url: URL, completion: @escaping (Result) -> Void) -> RecipeImageDataLoaderTask
+    func loadImageData(from url: URL, completion: @escaping (Result) -> Void) -> RecipeImageDataLoaderTask
 }
 
-class RemoteRecipeImageDataLoader {
+class RemoteRecipeImageDataLoader: RecipeImageDataLoader {
     let client: HTTPClient
     
     enum Error: Swift.Error {
