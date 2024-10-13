@@ -9,30 +9,6 @@ import Foundation
 import XCTest
 import Fetch
 
-class URLSessionHTTPClient: HTTPClient {
-    let session: URLSession
-    
-    init(session: URLSession = .shared) {
-        self.session = session
-    }
-    
-    func get(from url: URL, completion: @escaping (HTTPClient.Result) -> Void) {
-        session.dataTask(with: url) { data, response, error in
-            completion(Result {
-                if let error = error {
-                    throw error
-                } else if let data = data, let response = response as? HTTPURLResponse {
-                    return (data, response)
-                } else {
-                    throw UnexpectedError()
-                }
-            })
-        }.resume()
-    }
-    
-    struct UnexpectedError: Error {}
-}
-
 final class URLSessionHTTPClientTests: XCTestCase {
     
     override func setUp() {
