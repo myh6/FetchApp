@@ -37,7 +37,7 @@ public class RemoteRecipeImageDataLoader: RecipeImageDataLoader {
             self.completion = completion
         }
         
-        func completion(with result: RecipeImageDataLoader.Result) {
+        func complete(with result: RecipeImageDataLoader.Result) {
             completion?(result)
         }
         
@@ -56,16 +56,13 @@ public class RemoteRecipeImageDataLoader: RecipeImageDataLoader {
         let task = HTTPClientTaskWrapper(completion)
         task.wrapped = client.get(from: url) { [weak self] result in
             guard self != nil else { return }
-            switch result {
-            case let .success((data, response)):
-                if response.statusCode == 200 && !data.isEmpty {
-                    task.completion(with: .success(data))
-                } else {
-                    task.completion(with: .failure(RemoteRecipeImageDataLoader.Error.invalidData))
+            task.complete(with: result
+                .mapError { _ in Error.connectivity }
+                .flatMap { (data, response) in
+                    let isValid = response.statusCode == 200 && !data.isEmpty
+                    return isValid ? .success(data) : .failure(Error.invalidData)
                 }
-            case .failure:
-                task.completion(with: .failure(Error.connectivity))
-            }
+            )
         }
         return task
     }
