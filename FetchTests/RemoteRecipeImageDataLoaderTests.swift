@@ -20,10 +20,14 @@ protocol RecipeImageDataLoader {
 }
 
 class RemoteRecipeImageDataLoader {
-    let client: Any
+    let client: HTTPClient
     
-    init(client: Any) {
+    init(client: HTTPClient) {
         self.client = client
+    }
+    
+    func loadImageData(from url: URL, completion: @escaping () -> Void) {
+        client.get(from: url) { _ in }
     }
 }
 
@@ -32,6 +36,15 @@ final class RemoteRecipeImageDataLoaderTests: XCTestCase {
         let (_, client) = makeSUT()
         
         XCTAssertTrue(client.requestedURLs.isEmpty)
+    }
+    
+    func test_loadImageDataFromURL_performsURLRequest() {
+        let url = anyURL()
+        let (sut, client) = makeSUT()
+        
+        sut.loadImageData(from: url) {}
+        
+        XCTAssertEqual(client.requestedURLs, [url])
     }
     
     //MARK: - Helpers
@@ -43,10 +56,10 @@ final class RemoteRecipeImageDataLoaderTests: XCTestCase {
         return (sut, client)
     }
     
-    private class HTTPClientSpy {
+    private class HTTPClientSpy: HTTPClient {
         var requestedURLs = [URL]()
         
-        func request(_ url: URL, completion: @escaping (Result<Data, Error>) -> Void) {
+        func get(from url: URL, completion: @escaping (HTTPClient.Result) -> Void) {
             requestedURLs.append(url)
         }
     }
