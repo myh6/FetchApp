@@ -144,8 +144,13 @@ final class RemoteRecipeLoaderTests: XCTestCase {
             messages.map(\.requestedURL)
         }
         
-        func get(from url: URL, completion: @escaping (HTTPClient.Result) -> Void) {
+        private struct Task: HTTPClientTask {
+            func cancel() {}
+        }
+        
+        func get(from url: URL, completion: @escaping (HTTPClient.Result) -> Void) -> HTTPClientTask {
             messages.append((url, completion))
+            return Task()
         }
         
         func complete(with error: NSError, at index: Int = 0) {
