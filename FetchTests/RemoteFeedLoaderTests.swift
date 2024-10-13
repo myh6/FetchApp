@@ -8,57 +8,6 @@
 import XCTest
 import Fetch
 
-class RemoteFeedLoader: FeedLoader {
-    enum Error: Swift.Error {
-        case invalidData, connectivity
-    }
-    
-    let client: HTTPClient
-    let url: URL
-    
-    init(client: HTTPClient, url: URL) {
-        self.client = client
-        self.url = url
-    }
-    
-    func load(completion: @escaping (FeedLoader.Result) -> Void) {
-        client.get(from: url) { result in
-            switch result {
-            case .failure:
-                completion(.failure(Error.connectivity))
-            case let .success((data, response)):
-                completion(RemoteFeedLoader.map(data, from: response))
-            }
-        }
-    }
-    
-    private static func map(_ data: Data, from response: HTTPURLResponse) -> FeedLoader.Result {
-        do {
-            let items = try FeedItemMapper.map(data, response)
-            return .success(items)
-        } catch {
-            return .failure(error)
-        }
-    }
-}
-
-struct FeedItemMapper {
-    private init() {}
-    private struct Root: Decodable {
-        let recipes: [RemoteFeedItem]
-    }
-    
-    static func map(_ data: Data, _ response: HTTPURLResponse) throws -> [RemoteFeedItem] {
-        guard response.statusCode == 200 else { throw RemoteFeedLoader.Error.invalidData }
-        do {
-            let root = try JSONDecoder().decode(Root.self, from: data)
-            return root.recipes
-        } catch {
-            throw RemoteFeedLoader.Error.invalidData
-        }
-    }
-}
-
 final class RemoteFeedLoaderTests: XCTestCase {
 
     func test_init_doesNotRequestDataFromURL() {
