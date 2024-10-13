@@ -73,7 +73,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
     }
     
     func test_getFromURL_succeedsOnHTTPURLResponseWithData() {
-        let data = Data("any data".utf8)
+        let data = anyData()
         let response = HTTPURLResponse(url: anyURL(), statusCode: 200, httpVersion: nil, headerFields: nil)
         
         let receivedResult = resultValueFor(data: data, response: response, error: nil)
