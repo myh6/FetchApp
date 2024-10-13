@@ -12,9 +12,9 @@ public struct RemoteRecipeItem: Codable {
     public let name: String
     public let photoUrlLarge: URL
     public let photoUrlSmall: URL
-    public let sourceUrl: URL
+    public let sourceUrl: URL?
     public let uuid: UUID
-    public let youtubeUrl: URL
+    public let youtubeUrl: URL?
     
     public init(
         cuisine: String,
