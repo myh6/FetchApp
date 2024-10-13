@@ -72,9 +72,6 @@ final class URLSessionHTTPClientTests: XCTestCase {
     }
     
     //MARK: - Helpers
-    private func anyURL() -> URL {
-        return URL(string: "https://any-url.com")!
-    }
     
     private class URLProtocolStub: URLProtocol {
         private static var stub: Stub?

@@ -144,10 +144,6 @@ final class RemoteFeedLoaderTests: XCTestCase {
         }
     }
     
-    private func anyURL() -> URL {
-        return URL(string: "https://any-url.com")!
-    }
-    
     private func expect(_ sut: RemoteRecipeLoader, toCompleteWith expectedResult: RemoteRecipeLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let exp = expectation(description: "Wait for completion")
         
