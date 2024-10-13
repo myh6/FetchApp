@@ -31,28 +31,45 @@ class RemoteRecipeImageDataLoader {
         self.client = client
     }
     
-    private struct HTTPTaskWrapper: RecipeImageDataLoaderTask {
-        let wrapped: HTTPClientTask
+    private class HTTPClientTaskWrapper: RecipeImageDataLoaderTask {
+        private var completion: ((RecipeImageDataLoader.Result) -> Void)?
+        var wrapped: HTTPClientTask?
+        
+        init(_ completion: @escaping (RecipeImageDataLoader.Result) -> Void) {
+            self.completion = completion
+        }
+        
+        func completion(with result: RecipeImageDataLoader.Result) {
+            completion?(result)
+        }
         
         func cancel() {
-            wrapped.cancel()
+            preventFurtherCompletion()
+            wrapped?.cancel()
+        }
+        
+        private func preventFurtherCompletion() {
+            completion = nil
         }
     }
     
     @discardableResult
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> RecipeImageDataLoaderTask {
-        return HTTPTaskWrapper(wrapped: client.get(from: url) { [weak self] result in
+        let task = HTTPClientTaskWrapper(completion)
+        task.wrapped = client.get(from: url) { [weak self] result in
             guard self != nil else { return }
             switch result {
             case let .success((data, response)):
                 if response.statusCode == 200 && !data.isEmpty {
-                    completion(.success(data))
+                    task.completion(with: .success(data))
                 } else {
-                    completion(.failure(RemoteRecipeImageDataLoader.Error.invalidData))
+                    task.completion(with: .failure(RemoteRecipeImageDataLoader.Error.invalidData))
                 }
-            case let .failure(error): completion(.failure(error))
+            case let .failure(error):
+                task.completion(with: .failure(error))
             }
-        })
+        }
+        return task
     }
 }
 
@@ -129,6 +146,22 @@ final class RemoteRecipeImageDataLoaderTests: XCTestCase {
         
         task.cancel()
         XCTAssertEqual(client.cancelledURLs, [url])
+    }
+    
+    func test_loadImageDataFromURL_doesNotDeliversResultAfterCancellingTask() {
+        let (sut, client) = makeSUT()
+        let nonEmptyData = anyData()
+        let anyError = NSError(domain: "any error", code: 0)
+        
+        var received = [RecipeImageDataLoader.Result]()
+        let task = sut.loadImageData(from: anyURL()) { received.append($0) }
+        task.cancel()
+        
+        client.complete(withStatusCode: 200, data: nonEmptyData)
+        client.complete(withStatusCode: 400, data: Data())
+        client.complete(with: anyError)
+        
+        XCTAssertTrue(received.isEmpty)
     }
     
     func test_loadImageDataFromURL_doesNotDeliversResultAfterSUTHasBeenDeallocated() {
