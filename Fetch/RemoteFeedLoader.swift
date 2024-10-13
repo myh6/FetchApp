@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class RemoteFeedLoader: FeedLoader {
+public class RemoteFeedLoader: RecipeLoader {
     public enum Error: Swift.Error {
         case invalidData, connectivity
     }
@@ -20,7 +20,7 @@ public class RemoteFeedLoader: FeedLoader {
         self.url = url
     }
     
-    public func load(completion: @escaping (FeedLoader.Result) -> Void) {
+    public func load(completion: @escaping (RecipeLoader.Result) -> Void) {
         client.get(from: url) { result in
             switch result {
             case .failure:
@@ -31,7 +31,7 @@ public class RemoteFeedLoader: FeedLoader {
         }
     }
     
-    private static func map(_ data: Data, from response: HTTPURLResponse) -> FeedLoader.Result {
+    private static func map(_ data: Data, from response: HTTPURLResponse) -> RecipeLoader.Result {
         do {
             let items = try FeedItemMapper.map(data, response)
             return .success(items)

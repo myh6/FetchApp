@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol FeedLoader {
+public protocol RecipeLoader {
     typealias Result = Swift.Result<[RemoteRecipeItem], Error>
     func load(completion: @escaping (Result) -> Void)
 }
