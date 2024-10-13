@@ -37,7 +37,7 @@ final class RemoteRecipeLoaderTests: XCTestCase {
     
     func test_load_deliversErrorOnClientError() {
         let (sut, client) = makeSUT()
-        let clientError = NSError(domain: "any error", code: 0)
+        let clientError = anyNSError()
         
         expect(sut, toCompleteWith: .failure(RemoteRecipeLoader.Error.connectivity)) {
             client.complete(with: clientError)

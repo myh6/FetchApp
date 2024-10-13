@@ -101,7 +101,7 @@ final class RemoteRecipeImageDataLoaderTests: XCTestCase {
     
     func test_loadImageDataFromURL_delviersErrorOnClientError() {
         let (sut, client) = makeSUT()
-        let clientError = NSError(domain: "any error", code: 0)
+        let clientError = anyNSError()
         
         
         expect(sut, toCompleteWith: .failure(clientError)) {
@@ -151,7 +151,7 @@ final class RemoteRecipeImageDataLoaderTests: XCTestCase {
     func test_loadImageDataFromURL_doesNotDeliversResultAfterCancellingTask() {
         let (sut, client) = makeSUT()
         let nonEmptyData = anyData()
-        let anyError = NSError(domain: "any error", code: 0)
+        let anyError = anyNSError()
         
         var received = [RecipeImageDataLoader.Result]()
         let task = sut.loadImageData(from: anyURL()) { received.append($0) }
