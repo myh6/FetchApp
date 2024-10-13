@@ -33,7 +33,7 @@ public class RemoteRecipeLoader: RecipeLoader {
     
     private static func map(_ data: Data, from response: HTTPURLResponse) -> RecipeLoader.Result {
         do {
-            let items = try FeedItemMapper.map(data, response)
+            let items = try RecipeItemMapper.map(data, response)
             return .success(items)
         } catch {
             return .failure(error)
