@@ -8,11 +8,6 @@
 import XCTest
 import Fetch
 
-protocol FeedLoader {
-    typealias Result = Swift.Result<[RemoteFeedItem], Error>
-    func load(completion: @escaping (Result) -> Void)
-}
-
 class RemoteFeedLoader: FeedLoader {
     enum Error: Swift.Error {
         case invalidData, connectivity
