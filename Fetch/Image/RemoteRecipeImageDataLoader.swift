@@ -14,7 +14,6 @@ public protocol RecipeImageDataLoaderTask {
 public protocol RecipeImageDataLoader {
     typealias Result = Swift.Result<Data, Error>
     
-    @discardableResult
     func loadImageData(from url: URL, completion: @escaping (Result) -> Void) -> RecipeImageDataLoaderTask
 }
 
@@ -51,7 +50,6 @@ public class RemoteRecipeImageDataLoader: RecipeImageDataLoader {
         }
     }
     
-    @discardableResult
     public func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> RecipeImageDataLoaderTask {
         let task = HTTPClientTaskWrapper(completion)
         task.wrapped = client.get(from: url) { [weak self] result in
