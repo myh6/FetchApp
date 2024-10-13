@@ -17,12 +17,20 @@ class URLSessionHTTPClient: HTTPClient {
     }
     
     func get(from url: URL, completion: @escaping (HTTPClient.Result) -> Void) {
-        session.dataTask(with: url) { _, _, error in
-            if let error {
-                completion(.failure(error))
-            }
+        session.dataTask(with: url) { data, response, error in
+            completion(Result {
+                if let error = error {
+                    throw error
+                } else if let data = data, let response = response as? HTTPURLResponse {
+                    return (data, response)
+                } else {
+                    throw UnexpectedError()
+                }
+            })
         }.resume()
     }
+    
+    struct UnexpectedError: Error {}
 }
 
 final class URLSessionHTTPClientTests: XCTestCase {
@@ -64,6 +72,16 @@ final class URLSessionHTTPClientTests: XCTestCase {
         URLProtocolStub.stopInterceptingRequests()
     }
     
+    func test_getFromURL_succeedsOnHTTPURLResponseWithData() {
+        let data = Data("any data".utf8)
+        let response = HTTPURLResponse(url: anyURL(), statusCode: 200, httpVersion: nil, headerFields: nil)
+        
+        let receivedResult = resultValueFor(data: data, response: response, error: nil)
+        XCTAssertEqual(receivedResult?.data, data)
+        XCTAssertEqual(receivedResult?.response.url, response?.url)
+        XCTAssertEqual(receivedResult?.response.statusCode, response?.statusCode)
+    }
+    
     //MARK: - Helpers
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> URLSessionHTTPClient {
         let sut = URLSessionHTTPClient()
@@ -84,6 +102,18 @@ final class URLSessionHTTPClientTests: XCTestCase {
         
         wait(for: [exp], timeout: 1.0)
         return receivedResult
+    }
+    
+    private func resultValueFor(data: Data?, response: URLResponse?, error: Error?, file: StaticString = #file, line: UInt = #line) -> (data: Data, response: HTTPURLResponse)? {
+        let result = resultFor(data: data, response: response, error: error)
+        
+        switch result {
+        case let .success((data, response)):
+            return (data, response)
+        default:
+            XCTFail("Expected .success, got \(result) instead.")
+            return nil
+        }
     }
     
     private func errorResultFor(data: Data?, response: URLResponse?, error: Error?, file: StaticString = #file, line: UInt = #line) -> Error? {
