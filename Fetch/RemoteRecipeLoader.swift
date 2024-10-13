@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class RemoteFeedLoader: RecipeLoader {
+public class RemoteRecipeLoader: RecipeLoader {
     public enum Error: Swift.Error {
         case invalidData, connectivity
     }
@@ -26,7 +26,7 @@ public class RemoteFeedLoader: RecipeLoader {
             case .failure:
                 completion(.failure(Error.connectivity))
             case let .success((data, response)):
-                completion(RemoteFeedLoader.map(data, from: response))
+                completion(RemoteRecipeLoader.map(data, from: response))
             }
         }
     }

@@ -14,12 +14,12 @@ struct FeedItemMapper {
     }
     
     static func map(_ data: Data, _ response: HTTPURLResponse) throws -> [RemoteRecipeItem] {
-        guard response.statusCode == 200 else { throw RemoteFeedLoader.Error.invalidData }
+        guard response.statusCode == 200 else { throw RemoteRecipeLoader.Error.invalidData }
         do {
             let root = try JSONDecoder().decode(Root.self, from: data)
             return root.recipes
         } catch {
-            throw RemoteFeedLoader.Error.invalidData
+            throw RemoteRecipeLoader.Error.invalidData
         }
     }
 }

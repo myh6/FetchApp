@@ -39,7 +39,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
         let (sut, client) = makeSUT()
         let clientError = NSError(domain: "any error", code: 0)
         
-        expect(sut, toCompleteWith: .failure(RemoteFeedLoader.Error.connectivity)) {
+        expect(sut, toCompleteWith: .failure(RemoteRecipeLoader.Error.connectivity)) {
             client.complete(with: clientError)
         }
     }
@@ -49,7 +49,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
         let samples = [199, 201, 300, 400, 500]
 
         samples.enumerated().forEach { (index, code) in
-            expect(sut, toCompleteWith: .failure(RemoteFeedLoader.Error.invalidData)) {
+            expect(sut, toCompleteWith: .failure(RemoteRecipeLoader.Error.invalidData)) {
                 client.complete(withStatusCode: code, data: makeInvalidJSON(), at: index)
             }
         }
@@ -58,7 +58,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
     func test_load_deliversErrorOn200HTTPResponseWithInvalidJSON() {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWith: .failure(RemoteFeedLoader.Error.invalidData)) {
+        expect(sut, toCompleteWith: .failure(RemoteRecipeLoader.Error.invalidData)) {
             client.complete(withStatusCode: 200, data: makeInvalidJSON())
         }
     }
@@ -81,9 +81,9 @@ final class RemoteFeedLoaderTests: XCTestCase {
     }
     
     //MARK: - Helpers
-    private func makeSUT(url: URL = URL(string: "https://example.com")!, file: StaticString = #file, line: UInt = #line) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
+    private func makeSUT(url: URL = URL(string: "https://example.com")!, file: StaticString = #file, line: UInt = #line) -> (sut: RemoteRecipeLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
-        let sut = RemoteFeedLoader(client: client, url: url)
+        let sut = RemoteRecipeLoader(client: client, url: url)
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(client, file: file, line: line)
         return (sut, client)
@@ -148,7 +148,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
         return URL(string: "https://any-url.com")!
     }
     
-    private func expect(_ sut: RemoteFeedLoader, toCompleteWith expectedResult: RemoteFeedLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
+    private func expect(_ sut: RemoteRecipeLoader, toCompleteWith expectedResult: RemoteRecipeLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let exp = expectation(description: "Wait for completion")
         
         sut.load { receivedResult in
