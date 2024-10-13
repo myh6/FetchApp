@@ -22,14 +22,19 @@ protocol RecipeImageDataLoader {
 class RemoteRecipeImageDataLoader {
     let client: HTTPClient
     
+    enum Error: Swift.Error {
+        case invalidData
+    }
+    
     init(client: HTTPClient) {
         self.client = client
     }
     
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) {
         client.get(from: url) { result in
-            if case let .failure(error) = result {
-                completion(.failure(error))
+            switch result {
+            case let .success((_, _)): completion(.failure(RemoteRecipeImageDataLoader.Error.invalidData))
+            case let .failure(error): completion(.failure(error))
             }
         }
     }
@@ -71,6 +76,17 @@ final class RemoteRecipeImageDataLoaderTests: XCTestCase {
         }
     }
     
+    func test_loadImageDataFromURL_deliverInvalidDataErrorOnNon200HTTPResponse() {
+        let (sut, client) = makeSUT()
+        let samples = [199, 201, 300, 400, 500]
+        
+        samples.enumerated().forEach { index, code in
+            expect(sut, toCompleteWith: .failure(RemoteRecipeImageDataLoader.Error.invalidData)) {
+                client.complete(withStatusCode: code, data: anyData(), at: index)
+            }
+        }
+    }
+    
     //MARK: - Helpers
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> (sut: RemoteRecipeImageDataLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
@@ -107,9 +123,9 @@ final class RemoteRecipeImageDataLoaderTests: XCTestCase {
         sut.loadImageData(from: url) { receivedResult in
             switch (receivedResult, expectedResult) {
             case let (.success(receivedData), .success(expectedData)):
-                XCTAssertEqual(receivedData, expectedData)
+                XCTAssertEqual(receivedData, expectedData, file: file, line: line)
             case let (.failure(receivedError), .failure(expectedError)):
-                XCTAssertEqual(receivedError as NSError, expectedError as NSError)
+                XCTAssertEqual(receivedError as NSError, expectedError as NSError, file: file, line: line)
             default:
                 XCTFail("Expected to complete with \(expectedResult), but received \(receivedResult) instead.")
             }
