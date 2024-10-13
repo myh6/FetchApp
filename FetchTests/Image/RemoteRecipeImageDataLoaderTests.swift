@@ -35,12 +35,12 @@ final class RemoteRecipeImageDataLoaderTests: XCTestCase {
         XCTAssertEqual(client.requestedURL, [url, url])
     }
     
-    func test_loadImageDataFromURL_delviersErrorOnClientError() {
+    func test_loadImageDataFromURL_delviersConnectivityErrorOnClientError() {
         let (sut, client) = makeSUT()
         let clientError = anyNSError()
         
         
-        expect(sut, toCompleteWith: .failure(clientError)) {
+        expect(sut, toCompleteWith: .failure(RemoteRecipeImageDataLoader.Error.connectivity)) {
             client.complete(with: clientError)
         }
     }

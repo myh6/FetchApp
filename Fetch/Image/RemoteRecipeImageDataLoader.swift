@@ -22,7 +22,7 @@ public class RemoteRecipeImageDataLoader: RecipeImageDataLoader {
     private let client: HTTPClient
     
     public enum Error: Swift.Error {
-        case invalidData
+        case invalidData, connectivity
     }
     
     public init(client: HTTPClient) {
@@ -63,8 +63,8 @@ public class RemoteRecipeImageDataLoader: RecipeImageDataLoader {
                 } else {
                     task.completion(with: .failure(RemoteRecipeImageDataLoader.Error.invalidData))
                 }
-            case let .failure(error):
-                task.completion(with: .failure(error))
+            case .failure:
+                task.completion(with: .failure(Error.connectivity))
             }
         }
         return task
