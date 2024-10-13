@@ -21,7 +21,8 @@ public class RemoteRecipeLoader: RecipeLoader {
     }
     
     public func load(completion: @escaping (RecipeLoader.Result) -> Void) {
-        client.get(from: url) { result in
+        client.get(from: url) { [weak self] result in
+            guard self != nil else { return }
             switch result {
             case .failure:
                 completion(.failure(Error.connectivity))

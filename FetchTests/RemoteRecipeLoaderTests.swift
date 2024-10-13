@@ -8,7 +8,7 @@
 import XCTest
 import Fetch
 
-final class RemoteFeedLoaderTests: XCTestCase {
+final class RemoteRecipeLoaderTests: XCTestCase {
 
     func test_init_doesNotRequestDataFromURL() {
         let (_, client) = makeSUT()
@@ -78,6 +78,20 @@ final class RemoteFeedLoaderTests: XCTestCase {
         expect(sut, toCompleteWith: .success([item])) {
             client.complete(withStatusCode: 200, data: data)
         }
+    }
+    
+    func test_load_doesNotDeliversResultAfterInstanceHasBeenDeallocated() {
+        let client = HTTPClientSpy()
+        var sut: RemoteRecipeLoader? = RemoteRecipeLoader(client: client, url: anyURL())
+        
+        var capturedResult = [RemoteRecipeLoader.Result]()
+        sut?.load { result in
+            capturedResult.append(result)
+        }
+        
+        sut = nil
+        client.complete(withStatusCode: 200, data: anyData())
+        XCTAssertTrue(capturedResult.isEmpty)
     }
     
     //MARK: - Helpers
