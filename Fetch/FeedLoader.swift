@@ -8,6 +8,6 @@
 import Foundation
 
 public protocol FeedLoader {
-    typealias Result = Swift.Result<[RemoteFeedItem], Error>
+    typealias Result = Swift.Result<[RemoteRecipeItem], Error>
     func load(completion: @escaping (Result) -> Void)
 }

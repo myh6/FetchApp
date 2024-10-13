@@ -10,10 +10,10 @@ import Foundation
 struct FeedItemMapper {
     private init() {}
     private struct Root: Decodable {
-        let recipes: [RemoteFeedItem]
+        let recipes: [RemoteRecipeItem]
     }
     
-    static func map(_ data: Data, _ response: HTTPURLResponse) throws -> [RemoteFeedItem] {
+    static func map(_ data: Data, _ response: HTTPURLResponse) throws -> [RemoteRecipeItem] {
         guard response.statusCode == 200 else { throw RemoteFeedLoader.Error.invalidData }
         do {
             let root = try JSONDecoder().decode(Root.self, from: data)

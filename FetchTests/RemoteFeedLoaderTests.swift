@@ -98,8 +98,8 @@ final class RemoteFeedLoaderTests: XCTestCase {
         return makeItemJSON([])
     }
     
-    private func makeItem(cuisine: String = "any cuisine", name: String = "any name", uuid: UUID = UUID(), photoURLLarge: URL, photoURLSmall: URL, sourceURL: URL, youtubeURL: URL) -> (item: RemoteFeedItem, data: Data) {
-        let item = RemoteFeedItem(cuisine: cuisine, name: name, photoUrlLarge: photoURLLarge, photoUrlSmall: photoURLSmall, sourceUrl: sourceURL, uuid: uuid, youtubeUrl: sourceURL)
+    private func makeItem(cuisine: String = "any cuisine", name: String = "any name", uuid: UUID = UUID(), photoURLLarge: URL, photoURLSmall: URL, sourceURL: URL, youtubeURL: URL) -> (item: RemoteRecipeItem, data: Data) {
+        let item = RemoteRecipeItem(cuisine: cuisine, name: name, photoUrlLarge: photoURLLarge, photoUrlSmall: photoURLSmall, sourceUrl: sourceURL, uuid: uuid, youtubeUrl: sourceURL)
         let json = makeFeedDict(cuisine: cuisine, name: name, photoURLLarge: photoURLLarge, photoURLSmall: photoURLSmall, sourceURL: sourceURL, uuid: uuid, youtubeURL: youtubeURL)
         
         return (item, makeItemJSON([json]))
