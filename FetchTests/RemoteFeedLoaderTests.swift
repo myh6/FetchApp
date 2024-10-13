@@ -31,11 +31,37 @@ class RemoteFeedLoader: FeedLoader {
             switch result {
             case .failure:
                 completion(.failure(Error.connectivity))
-            case let .success((_, response)):
+            case let .success((data, response)):
                 guard response.statusCode == 200 else {
                     return completion(.failure(Error.invalidData))
                 }
+                completion(RemoteFeedLoader.map(data))
             }
+        }
+    }
+    
+    private static func map(_ data: Data) -> FeedLoader.Result {
+        do {
+            let items = try FeedItemMapper.map(data)
+            return .success(items)
+        } catch {
+            return .failure(error)
+        }
+    }
+}
+
+struct FeedItemMapper {
+    private init() {}
+    private struct Root: Decodable {
+        let recipes: [FeedItem]
+    }
+    
+    static func map(_ data: Data) throws -> [FeedItem] {
+        do {
+            let root = try JSONDecoder().decode(Root.self, from: data)
+            return root.recipes
+        } catch {
+            throw RemoteFeedLoader.Error.invalidData
         }
     }
 }
@@ -87,8 +113,16 @@ final class RemoteFeedLoaderTests: XCTestCase {
 
         samples.enumerated().forEach { (index, code) in
             expect(sut, toCompleteWith: .failure(RemoteFeedLoader.Error.invalidData)) {
-                client.complete(withStatusCode: code, at: index)
+                client.complete(withStatusCode: code, data: makeInvalidJSON(), at: index)
             }
+        }
+    }
+    
+    func test_load_deliversErrorOn200HTTPResponseWithInvalidJSON() {
+        let (sut, client) = makeSUT()
+        
+        expect(sut, toCompleteWith: .failure(RemoteFeedLoader.Error.invalidData)) {
+            client.complete(withStatusCode: 200, data: makeInvalidJSON())
         }
     }
     
@@ -99,6 +133,30 @@ final class RemoteFeedLoaderTests: XCTestCase {
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(client, file: file, line: line)
         return (sut, client)
+    }
+    
+    private func makeInvalidJSON() -> Data {
+        let data = makeFeedDict()
+        return makeItemJSON([data])
+    }
+    
+    private func makeFeedDict(cuisine: String? = nil, name: String? = "", photoURLLarge: URL? = nil, photoURLSmall: URL? = nil, sourceURL: URL? = nil, uuid: UUID = .init(), youtubeURL: URL? = nil) -> [String: Any] {
+        let dict = [
+            "cuisine": cuisine,
+            "name": name,
+            "photoUrlLarge": photoURLLarge?.absoluteString,
+            "photoUrlSmall": photoURLSmall?.absoluteString,
+            "sourceUrl": sourceURL?.absoluteString,
+            "uuid": uuid.uuidString,
+            "youtubeUrl": youtubeURL?.absoluteString
+        ].compactMapValues { $0 }
+        
+        return dict
+    }
+    
+    private func makeItemJSON(_ items: [[String: Any]]) -> Data {
+        let json = ["recipes": items]
+        return try! JSONSerialization.data(withJSONObject: json)
     }
     
     class HTTPClientSpy: HTTPClient {
@@ -115,9 +173,9 @@ final class RemoteFeedLoaderTests: XCTestCase {
             messages[index].completion(.failure(error))
         }
         
-        func complete(withStatusCode code: Int, at index: Int = 0) {
+        func complete(withStatusCode code: Int, data: Data, at index: Int = 0) {
             let response = HTTPURLResponse(url: requestedURL[index], statusCode: code, httpVersion: nil, headerFields: nil)!
-            messages[index].completion(.success((Data(), response)))
+            messages[index].completion(.success((data, response)))
         }
     }
     
