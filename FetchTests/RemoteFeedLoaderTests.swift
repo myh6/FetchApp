@@ -9,7 +9,7 @@ import XCTest
 import Fetch
 
 protocol FeedLoader {
-    typealias Result = Swift.Result<[FeedItem], Error>
+    typealias Result = Swift.Result<[RemoteFeedItem], Error>
     func load(completion: @escaping (Result) -> Void)
 }
 
@@ -50,10 +50,10 @@ class RemoteFeedLoader: FeedLoader {
 struct FeedItemMapper {
     private init() {}
     private struct Root: Decodable {
-        let recipes: [FeedItem]
+        let recipes: [RemoteFeedItem]
     }
     
-    static func map(_ data: Data, _ response: HTTPURLResponse) throws -> [FeedItem] {
+    static func map(_ data: Data, _ response: HTTPURLResponse) throws -> [RemoteFeedItem] {
         guard response.statusCode == 200 else { throw RemoteFeedLoader.Error.invalidData }
         do {
             let root = try JSONDecoder().decode(Root.self, from: data)
@@ -159,8 +159,8 @@ final class RemoteFeedLoaderTests: XCTestCase {
         return makeItemJSON([])
     }
     
-    private func makeItem(cuisine: String = "any cuisine", name: String = "any name", uuid: UUID = UUID(), photoURLLarge: URL, photoURLSmall: URL, sourceURL: URL, youtubeURL: URL) -> (item: FeedItem, data: Data) {
-        let item = FeedItem(cuisine: cuisine, name: name, photoUrlLarge: photoURLLarge, photoUrlSmall: photoURLSmall, sourceUrl: sourceURL, uuid: uuid, youtubeUrl: sourceURL)
+    private func makeItem(cuisine: String = "any cuisine", name: String = "any name", uuid: UUID = UUID(), photoURLLarge: URL, photoURLSmall: URL, sourceURL: URL, youtubeURL: URL) -> (item: RemoteFeedItem, data: Data) {
+        let item = RemoteFeedItem(cuisine: cuisine, name: name, photoUrlLarge: photoURLLarge, photoUrlSmall: photoURLSmall, sourceUrl: sourceURL, uuid: uuid, youtubeUrl: sourceURL)
         let json = makeFeedDict(cuisine: cuisine, name: name, photoURLLarge: photoURLLarge, photoURLSmall: photoURLSmall, sourceURL: sourceURL, uuid: uuid, youtubeURL: youtubeURL)
         
         return (item, makeItemJSON([json]))

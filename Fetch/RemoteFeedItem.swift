@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct FeedItem: Codable {
+public struct RemoteFeedItem: Codable {
     public let cuisine: String
     public let name: String
     public let photoUrlLarge: URL
