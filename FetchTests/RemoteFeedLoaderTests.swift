@@ -124,6 +124,14 @@ final class RemoteFeedLoaderTests: XCTestCase {
         }
     }
     
+    func test_load_deliversNoItemOn200HTTPURLResponseWithEmptyJSON() {
+        let (sut, client) = makeSUT()
+        
+        expect(sut, toCompleteWith: .success([])) {
+            client.complete(withStatusCode: 200, data: makeEmptyJSON())
+        }
+    }
+    
     //MARK: - Helpers
     private func makeSUT(url: URL = URL(string: "https://example.com")!, file: StaticString = #file, line: UInt = #line) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
@@ -136,6 +144,10 @@ final class RemoteFeedLoaderTests: XCTestCase {
     private func makeInvalidJSON() -> Data {
         let data = makeFeedDict()
         return makeItemJSON([data])
+    }
+    
+    private func makeEmptyJSON() -> Data {
+        return makeItemJSON([])
     }
     
     private func makeFeedDict(cuisine: String? = nil, name: String? = "", photoURLLarge: URL? = nil, photoURLSmall: URL? = nil, sourceURL: URL? = nil, uuid: UUID = .init(), youtubeURL: URL? = nil) -> [String: Any] {
