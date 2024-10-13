@@ -132,6 +132,15 @@ final class RemoteFeedLoaderTests: XCTestCase {
         }
     }
     
+    func test_load_deliversItemOn200HTTPResponseWithJSONItems() {
+        let (sut, client) = makeSUT()
+        let (item, data) = makeItem(photoURLLarge: anyURL(), photoURLSmall: anyURL(), sourceURL: anyURL(), youtubeURL: anyURL())
+        
+        expect(sut, toCompleteWith: .success([item])) {
+            client.complete(withStatusCode: 200, data: data)
+        }
+    }
+    
     //MARK: - Helpers
     private func makeSUT(url: URL = URL(string: "https://example.com")!, file: StaticString = #file, line: UInt = #line) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
@@ -148,6 +157,13 @@ final class RemoteFeedLoaderTests: XCTestCase {
     
     private func makeEmptyJSON() -> Data {
         return makeItemJSON([])
+    }
+    
+    private func makeItem(cuisine: String = "any cuisine", name: String = "any name", uuid: UUID = UUID(), photoURLLarge: URL, photoURLSmall: URL, sourceURL: URL, youtubeURL: URL) -> (item: FeedItem, data: Data) {
+        let item = FeedItem(cuisine: cuisine, name: name, photoUrlLarge: photoURLLarge, photoUrlSmall: photoURLSmall, sourceUrl: sourceURL, uuid: uuid, youtubeUrl: sourceURL)
+        let json = makeFeedDict(cuisine: cuisine, name: name, photoURLLarge: photoURLLarge, photoURLSmall: photoURLSmall, sourceURL: sourceURL, uuid: uuid, youtubeURL: youtubeURL)
+        
+        return (item, makeItemJSON([json]))
     }
     
     private func makeFeedDict(cuisine: String? = nil, name: String? = "", photoURLLarge: URL? = nil, photoURLSmall: URL? = nil, sourceURL: URL? = nil, uuid: UUID = .init(), youtubeURL: URL? = nil) -> [String: Any] {
