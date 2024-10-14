@@ -52,25 +52,9 @@ class LocalRecipeImageDataLoader: RecipeImageDataLoader {
     }
 }
 
-class RecipeImageDataStore {
+protocol RecipeImageDataStore {
     typealias Result = Swift.Result<Data?, Error>
-    
-    private var messages = [(requestedURL: URL, completion: ((Result) -> Void)?)]()
-    var receivedMessage: [URL] {
-        messages.map(\.requestedURL)
-    }
-    
-    func retrieve(dataForURL url: URL, completion: @escaping (Result) -> Void) {
-        messages.append((url, completion))
-    }
-    
-    func completeRetrieval(with error: Error, at index: Int = 0) {
-        messages[index].completion?(.failure(error))
-    }
-    
-    func completeRetrieval(with data: Data?, at index: Int = 0) {
-        messages[index].completion?(.success(data))
-    }
+    func retrieve(dataForURL url: URL, completion: @escaping (Result) -> Void)
 }
 
 class LocalRecipeImageDataLoaderTests: XCTestCase {
@@ -130,7 +114,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
     }
     
     func test_loadImageDataFromURL_doesNotDeliversResultAfterSUTHasBeenDeallocated() {
-        let store = RecipeImageDataStore()
+        let store = RecipeImageDataStoreSpy()
         var sut: LocalRecipeImageDataLoader? = LocalRecipeImageDataLoader(store: store)
         
         var capturedResult = [RecipeImageDataLoader.Result]()
@@ -144,8 +128,8 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
     }
     
     //MARK: - Helpers
-    private func makeSUT(file: StaticString = #file, line: UInt = #line) -> (sut: LocalRecipeImageDataLoader, store: RecipeImageDataStore) {
-        let store = RecipeImageDataStore()
+    private func makeSUT(file: StaticString = #file, line: UInt = #line) -> (sut: LocalRecipeImageDataLoader, store: RecipeImageDataStoreSpy) {
+        let store = RecipeImageDataStoreSpy()
         let sut = LocalRecipeImageDataLoader(store: store)
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(store, file: file, line: line)
@@ -169,5 +153,24 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         
         action()
         wait(for: [exp], timeout: 1.0)
+    }
+    
+    private class RecipeImageDataStoreSpy: RecipeImageDataStore {
+        private var messages = [(requestedURL: URL, completion: ((Result) -> Void)?)]()
+        var receivedMessage: [URL] {
+            messages.map(\.requestedURL)
+        }
+        
+        func retrieve(dataForURL url: URL, completion: @escaping (RecipeImageDataStore.Result) -> Void) {
+            messages.append((url, completion))
+        }
+        
+        func completeRetrieval(with error: Error, at index: Int = 0) {
+            messages[index].completion?(.failure(error))
+        }
+        
+        func completeRetrieval(with data: Data?, at index: Int = 0) {
+            messages[index].completion?(.success(data))
+        }
     }
 }
