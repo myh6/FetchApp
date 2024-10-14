@@ -124,12 +124,12 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         }
         
         var messages = [Messages]()
-        private var completions = [(RecipeImageDataStore.Result) -> Void]()
+        private var retrievalCompletions = [(RetrievalResult) -> Void]()
         private var insertionCompletions = [(InsertionResult) -> Void]()
 
-        func retrieve(dataForURL url: URL, completion: @escaping (RecipeImageDataStore.Result) -> Void) {
+        func retrieve(dataForURL url: URL, completion: @escaping (RetrievalResult) -> Void) {
             messages.append(.retrieve(dataFor: url))
-            completions.append(completion)
+            retrievalCompletions.append(completion)
         }
         
         func insert(_ data: Data, for url: URL, completion: @escaping (InsertionResult) -> Void) {
@@ -138,11 +138,11 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         }
         
         func completeRetrieval(with error: Error, at index: Int = 0) {
-            completions[index](.failure(error))
+            retrievalCompletions[index](.failure(error))
         }
         
         func completeRetrieval(with data: Data?, at index: Int = 0) {
-            completions[index](.success(data))
+            retrievalCompletions[index](.success(data))
         }
     }
 }
