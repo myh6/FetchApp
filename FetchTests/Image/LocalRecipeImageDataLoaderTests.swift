@@ -105,6 +105,20 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         }
     }
     
+    func test_saveImageDataForURL_doesNotReturnResultAfterSUTDeallocation() {
+        let store = RecipeImageDataStoreSpy()
+        var sut: LocalRecipeImageDataLoader? = LocalRecipeImageDataLoader(store: store)
+        
+        var capturedResult = [LocalRecipeImageDataLoader.SaveResult]()
+        sut?.save(anyData(), for: anyURL()) { capturedResult.append($0) }
+        
+        sut = nil
+        store.completeInsertion(with: anyNSError())
+        store.completeInsertionSuccessfully()
+        
+        XCTAssertTrue(capturedResult.isEmpty)
+    }
+    
     //MARK: - Helpers
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> (sut: LocalRecipeImageDataLoader, store: RecipeImageDataStoreSpy) {
         let store = RecipeImageDataStoreSpy()
