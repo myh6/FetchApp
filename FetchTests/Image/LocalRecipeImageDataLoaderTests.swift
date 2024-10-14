@@ -97,6 +97,14 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         }
     }
     
+    func test_saveImageDataForURL_succeedsOnStoreInsertion() {
+        let (sut, store) = makeSUT()
+        
+        expect(sut, toCompleteInsertionWith: .success(())) {
+            store.completeInsertionSuccessfully()
+        }
+    }
+    
     //MARK: - Helpers
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> (sut: LocalRecipeImageDataLoader, store: RecipeImageDataStoreSpy) {
         let store = RecipeImageDataStoreSpy()
@@ -182,6 +190,10 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         
         func completeInsertion(with error: Error, at index: Int = 0) {
             insertionCompletions[index](.failure(error))
+        }
+        
+        func completeInsertionSuccessfully(at index: Int = 0) {
+            insertionCompletions[index](.success(()))
         }
     }
 }
