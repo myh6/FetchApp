@@ -13,7 +13,7 @@ class LocalRecipeImageDataLoader {
     let store: RecipeImageDataStore
     
     enum Error: Swift.Error {
-        case notFound
+        case notFound, failed
     }
     
     init(store: RecipeImageDataStore) {
@@ -23,8 +23,8 @@ class LocalRecipeImageDataLoader {
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) {
         store.retrieve(dataForURL: url) { result in
             switch result {
-            case let .failure(error):
-                completion(.failure(error))
+            case .failure:
+                completion(.failure(Error.failed))
             case .success:
                 completion(.failure(Error.notFound))
             }
@@ -73,7 +73,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         let storeError = anyNSError()
         let (sut, store) = makeSUT()
         
-        expect(sut, toCompleteWith: .failure(storeError)) {
+        expect(sut, toCompleteWith: .failure(LocalRecipeImageDataLoader.Error.failed)) {
             store.completeRetrieval(with: storeError)
         }
     }
