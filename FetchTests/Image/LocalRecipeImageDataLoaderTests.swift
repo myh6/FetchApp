@@ -9,24 +9,46 @@ import Foundation
 import XCTest
 import Fetch
 
-class LocalRecipeImageDataLoader {
+class LocalRecipeImageDataLoader: RecipeImageDataLoader {
     let store: RecipeImageDataStore
     
     enum Error: Swift.Error {
         case notFound, failed
     }
     
+    private final class Task: RecipeImageDataLoaderTask {
+        private var completion: ((RecipeImageDataLoader.Result) -> Void)?
+        
+        init(_ completion: @escaping (RecipeImageDataLoader.Result) -> Void) {
+            self.completion = completion
+        }
+        
+        func complete(with result: RecipeImageDataLoader.Result) {
+            completion?(result)
+        }
+        
+        func cancel() {
+            preventFurtherCompletion()
+        }
+        
+        private func preventFurtherCompletion() {
+            completion = nil
+        }
+    }
+    
     init(store: RecipeImageDataStore) {
         self.store = store
     }
     
-    func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) {
+    func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> RecipeImageDataLoaderTask {
+        let task = Task(completion)
         store.retrieve(dataForURL: url) { [weak self] result in
             guard self != nil else { return }
-            completion(result
+            task.complete(with: result
                 .mapError { _ in Error.failed }
                 .flatMap { data in data.map { .success($0) } ?? .failure(Error.notFound) })
         }
+        return task
     }
 }
 
@@ -62,7 +84,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         let (sut, store) = makeSUT()
         let url = anyURL()
         
-        sut.loadImageData(from: url) { _ in }
+        _ = sut.loadImageData(from: url) { _ in }
         
         XCTAssertEqual(store.receivedMessage, [url])
     }
@@ -93,12 +115,26 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         }
     }
     
+    func test_loadImageDataFromURL_deliversNotFoundAfterCancellingTask() {
+        let (sut, store) = makeSUT()
+        var received = [RecipeImageDataLoader.Result]()
+        
+        let task = sut.loadImageData(from: anyURL()) { received.append($0) }
+        task.cancel()
+        
+        store.completeRetrieval(with: anyNSError())
+        store.completeRetrieval(with: anyData())
+        store.completeRetrieval(with: .none)
+        
+        XCTAssertTrue(received.isEmpty)
+    }
+    
     func test_loadImageDataFromURL_doesNotDeliversResultAfterSUTHasBeenDeallocated() {
         let store = RecipeImageDataStore()
         var sut: LocalRecipeImageDataLoader? = LocalRecipeImageDataLoader(store: store)
         
         var capturedResult = [RecipeImageDataLoader.Result]()
-        sut?.loadImageData(from: anyURL()) { result in
+        _ = sut?.loadImageData(from: anyURL()) { result in
             capturedResult.append(result)
         }
         
@@ -119,7 +155,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
     private func expect(_ sut: LocalRecipeImageDataLoader, toCompleteWith expectedResult: RecipeImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let exp = expectation(description: "Wait for completion")
         
-        sut.loadImageData(from: anyURL()) { receivedResult in
+        _ = sut.loadImageData(from: anyURL()) { receivedResult in
             switch (receivedResult, expectedResult) {
             case let (.failure(receivedError as NSError), .failure(expectedError as NSError)):
                 XCTAssertEqual(receivedError, expectedError, file: file, line: line)
