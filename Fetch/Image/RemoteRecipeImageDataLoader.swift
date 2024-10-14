@@ -11,12 +11,6 @@ public protocol RecipeImageDataLoaderTask {
     func cancel()
 }
 
-public protocol RecipeImageDataLoader {
-    typealias Result = Swift.Result<Data, Error>
-    
-    func loadImageData(from url: URL, completion: @escaping (Result) -> Void) -> RecipeImageDataLoaderTask
-}
-
 public class RemoteRecipeImageDataLoader: RecipeImageDataLoader {
     private let client: HTTPClient
     
