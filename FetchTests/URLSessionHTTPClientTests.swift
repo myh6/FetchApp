@@ -85,7 +85,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
         config.protocolClasses = [URLProtocolStub.self]
         let session = URLSession(configuration: config)
         let sut = URLSessionHTTPClient(session: session)
-        trackForMemoryLeaks(sut)
+        trackForMemoryLeaks(sut, file: file, line: line)
         return sut
     }
     
@@ -111,7 +111,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
         case let .success((data, response)):
             return (data, response)
         default:
-            XCTFail("Expected .success, got \(result) instead.")
+            XCTFail("Expected .success, got \(result) instead.", file: file, line: line)
             return nil
         }
     }
@@ -123,7 +123,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
         case let .failure(error):
             return error
         default:
-            XCTFail("Expected .failure, got \(result) instead")
+            XCTFail("Expected .failure, got \(result) instead", file: file, line: line)
             return nil
         }
     }

@@ -32,8 +32,8 @@ final class FetchEndToEndTests: XCTestCase {
         let serverURL = URL(string: "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json")!
         let client = URLSessionHTTPClient(session: .shared)
         let loader = RemoteRecipeLoader(client: client, url: serverURL)
-        trackForMemoryLeaks(client)
-        trackForMemoryLeaks(loader)
+        trackForMemoryLeaks(client, file: file, line: line)
+        trackForMemoryLeaks(loader, file: file, line: line)
         let exp = expectation(description: "Wait for load completion")
         
         var receivedResult: RecipeLoader.Result?
