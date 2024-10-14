@@ -23,15 +23,9 @@ class LocalRecipeImageDataLoader {
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) {
         store.retrieve(dataForURL: url) { [weak self] result in
             guard self != nil else { return }
-            switch result {
-            case .failure:
-                completion(.failure(Error.failed))
-            case let .success(data):
-                guard let data = data, !data.isEmpty else {
-                    return completion(.failure(Error.notFound))
-                }
-                completion(.success(data))
-            }
+            completion(result
+                .mapError { _ in Error.failed }
+                .flatMap { data in data.map { .success($0) } ?? .failure(Error.notFound) })
         }
     }
 }
