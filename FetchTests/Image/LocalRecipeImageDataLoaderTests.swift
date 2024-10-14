@@ -12,21 +12,28 @@ import Fetch
 class LocalRecipeImageDataLoader {
     let store: RecipeImageDataStore
     
+    enum Error: Swift.Error {
+        case notFound
+    }
+    
     init(store: RecipeImageDataStore) {
         self.store = store
     }
     
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) {
         store.retrieve(dataForURL: url) { result in
-            if case let .failure(error) = result {
+            switch result {
+            case let .failure(error):
                 completion(.failure(error))
+            case .success:
+                completion(.failure(Error.notFound))
             }
         }
     }
 }
 
 class RecipeImageDataStore {
-    typealias Result = Swift.Result<Data, Error>
+    typealias Result = Swift.Result<Data?, Error>
     
     private var messages = [(requestedURL: URL, completion: ((Result) -> Void)?)]()
     var receivedMessage: [URL] {
@@ -37,8 +44,12 @@ class RecipeImageDataStore {
         messages.append((url, completion))
     }
     
-    func complete(with error: Error, at index: Int = 0) {
+    func completeRetrieval(with error: Error, at index: Int = 0) {
         messages[index].completion?(.failure(error))
+    }
+    
+    func completeRetrieval(with data: Data?, at index: Int = 0) {
+        messages[index].completion?(.success(data))
     }
 }
 
@@ -63,7 +74,15 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         let (sut, store) = makeSUT()
         
         expect(sut, toCompleteWith: .failure(storeError)) {
-            store.complete(with: storeError)
+            store.completeRetrieval(with: storeError)
+        }
+    }
+    
+    func test_loadImageDataFromURL_deliversNotFoundErrorOnNotFound() {
+        let (sut, store) = makeSUT()
+        
+        expect(sut, toCompleteWith: .failure(LocalRecipeImageDataLoader.Error.notFound)) {
+            store.completeRetrieval(with: .none)
         }
     }
     
