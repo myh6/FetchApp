@@ -52,11 +52,6 @@ class LocalRecipeImageDataLoader: RecipeImageDataLoader {
     }
 }
 
-protocol RecipeImageDataStore {
-    typealias Result = Swift.Result<Data?, Error>
-    func retrieve(dataForURL url: URL, completion: @escaping (Result) -> Void)
-}
-
 class LocalRecipeImageDataLoaderTests: XCTestCase {
     func test_init_doesNotMessageStoreUponCreation() {
         let (_, store) = makeSUT()
