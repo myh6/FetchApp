@@ -7,12 +7,8 @@
 
 import Foundation
 
-public class LocalRecipeImageDataLoader: RecipeImageDataLoader {
+public class LocalRecipeImageDataLoader {
     private let store: RecipeImageDataStore
-    
-    public enum LoadError: Swift.Error {
-        case notFound, failed
-    }
     
     private final class Task: RecipeImageDataLoaderTask {
         private var completion: ((RecipeImageDataLoader.Result) -> Void)?
@@ -36,6 +32,12 @@ public class LocalRecipeImageDataLoader: RecipeImageDataLoader {
     
     public init(store: RecipeImageDataStore) {
         self.store = store
+    }
+}
+
+extension LocalRecipeImageDataLoader: RecipeImageDataLoader {
+    public enum LoadError: Swift.Error {
+        case notFound, failed
     }
     
     public func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> RecipeImageDataLoaderTask {
