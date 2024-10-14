@@ -7,6 +7,7 @@
 
 import Foundation
 import XCTest
+import Fetch
 
 class LocalRecipeImageDataLoader {
     let store: RecipeImageDataStore
@@ -15,16 +16,29 @@ class LocalRecipeImageDataLoader {
         self.store = store
     }
     
-    func loadImageData(from url: URL) {
-        store.retrieve(dataForURL: url)
+    func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) {
+        store.retrieve(dataForURL: url) { result in
+            if case let .failure(error) = result {
+                completion(.failure(error))
+            }
+        }
     }
 }
 
 class RecipeImageDataStore {
-    var receivedMessage = [URL]()
+    typealias Result = Swift.Result<Data, Error>
     
-    func retrieve(dataForURL url: URL) {
-        receivedMessage.append(url)
+    private var messages = [(requestedURL: URL, completion: ((Result) -> Void)?)]()
+    var receivedMessage: [URL] {
+        messages.map(\.requestedURL)
+    }
+    
+    func retrieve(dataForURL url: URL, completion: @escaping (Result) -> Void) {
+        messages.append((url, completion))
+    }
+    
+    func complete(with error: Error, at index: Int = 0) {
+        messages[index].completion?(.failure(error))
     }
 }
 
@@ -39,9 +53,27 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         let (sut, store) = makeSUT()
         let url = anyURL()
         
-        sut.loadImageData(from: url)
+        sut.loadImageData(from: url) { _ in }
         
         XCTAssertEqual(store.receivedMessage, [url])
+    }
+    
+    func test_loadImageDataFromURL_failsOnStoreError() {
+        let storeError = anyNSError()
+        let (sut, store) = makeSUT()
+        let exp = expectation(description: "Wait for completion")
+        
+        sut.loadImageData(from: anyURL()) { result in
+            if case let .failure(receivedError) = result {
+                XCTAssertEqual(receivedError as NSError, storeError)
+            } else {
+                XCTFail("Expect .failure, but got \(result) instead")
+            }
+            exp.fulfill()
+        }
+        
+        store.complete(with: storeError)
+        wait(for: [exp], timeout: 1.0)
     }
     
     //MARK: - Helpers
