@@ -25,8 +25,11 @@ class LocalRecipeImageDataLoader {
             switch result {
             case .failure:
                 completion(.failure(Error.failed))
-            case .success:
-                completion(.failure(Error.notFound))
+            case let .success(data):
+                guard let data = data, !data.isEmpty else {
+                    return completion(.failure(Error.notFound))
+                }
+                completion(.success(data))
             }
         }
     }
@@ -86,6 +89,15 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         }
     }
     
+    func test_loadImageDataFromURL_deliversImageDataOnSuccess() {
+        let imageData = anyData()
+        let (sut, store) = makeSUT()
+        
+        expect(sut, toCompleteWith: .success(imageData)) {
+            store.completeRetrieval(with: imageData)
+        }
+    }
+    
     //MARK: - Helpers
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> (sut: LocalRecipeImageDataLoader, store: RecipeImageDataStore) {
         let store = RecipeImageDataStore()
@@ -102,8 +114,10 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
             switch (receivedResult, expectedResult) {
             case let (.failure(receivedError as NSError), .failure(expectedError as NSError)):
                 XCTAssertEqual(receivedError, expectedError, file: file, line: line)
+            case let (.success(receiedData), .success(expectedData)):
+                XCTAssertEqual(receiedData, expectedData, file: file, line: line)
             default:
-                XCTFail("Haven't implemented yet")
+                XCTFail("Expect to complete with \(expectedResult), but got \(receivedResult) instead.", file: file, line: line)
             }
             exp.fulfill()
         }
