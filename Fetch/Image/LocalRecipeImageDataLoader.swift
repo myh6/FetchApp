@@ -10,7 +10,7 @@ import Foundation
 public class LocalRecipeImageDataLoader: RecipeImageDataLoader {
     private let store: RecipeImageDataStore
     
-    public enum Error: Swift.Error {
+    public enum LoadError: Swift.Error {
         case notFound, failed
     }
     
@@ -43,15 +43,23 @@ public class LocalRecipeImageDataLoader: RecipeImageDataLoader {
         store.retrieve(dataForURL: url) { [weak self] result in
             guard self != nil else { return }
             task.complete(with: result
-                .mapError { _ in Error.failed }
-                .flatMap { data in data.map { .success($0) } ?? .failure(Error.notFound) })
+                .mapError { _ in LoadError.failed }
+                .flatMap { data in data.map { .success($0) } ?? .failure(LoadError.notFound) })
         }
         return task
     }
 }
 
 extension LocalRecipeImageDataLoader {
-    public func save(_ data: Data, for url: URL, completion: @escaping () -> Void) {
-        store.insert(data, for: url) { _ in }
+    public typealias SaveResult = Result<Void, Error>
+
+    public enum SaveError: Error {
+        case failed
+    }
+
+    public func save(_ data: Data, for url: URL, completion: @escaping (SaveResult) -> Void) {
+        store.insert(data, for: url) { result in
+            completion(.failure(SaveError.failed))
+        }
     }
 }

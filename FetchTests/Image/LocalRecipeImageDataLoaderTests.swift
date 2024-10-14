@@ -29,7 +29,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         let storeError = anyNSError()
         let (sut, store) = makeSUT()
         
-        expect(sut, toCompleteWith: .failure(LocalRecipeImageDataLoader.Error.failed)) {
+        expect(sut, toCompleteLoadWith: .failure(LocalRecipeImageDataLoader.LoadError.failed)) {
             store.completeRetrieval(with: storeError)
         }
     }
@@ -37,7 +37,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
     func test_loadImageDataFromURL_deliversNotFoundErrorOnNotFound() {
         let (sut, store) = makeSUT()
         
-        expect(sut, toCompleteWith: .failure(LocalRecipeImageDataLoader.Error.notFound)) {
+        expect(sut, toCompleteLoadWith: .failure(LocalRecipeImageDataLoader.LoadError.notFound)) {
             store.completeRetrieval(with: .none)
         }
     }
@@ -46,7 +46,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         let imageData = anyData()
         let (sut, store) = makeSUT()
         
-        expect(sut, toCompleteWith: .success(imageData)) {
+        expect(sut, toCompleteLoadWith: .success(imageData)) {
             store.completeRetrieval(with: imageData)
         }
     }
@@ -84,9 +84,17 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         let url = anyURL()
         let data = anyData()
         
-        sut.save(data, for: url) {}
+        sut.save(data, for: url) { _ in }
         
         XCTAssertEqual(store.messages, [.insert(data: data, for: url)])
+    }
+    
+    func test_saveImageDataForURL_failsOnStoreInsertionError() {
+        let (sut, store) = makeSUT()
+        
+        expect(sut, toCompleteInsertionWith: failure(.failed)) {
+            store.completeInsertion(with: anyNSError())
+        }
     }
     
     //MARK: - Helpers
@@ -98,7 +106,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         return (sut, store)
     }
     
-    private func expect(_ sut: LocalRecipeImageDataLoader, toCompleteWith expectedResult: RecipeImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
+    private func expect(_ sut: LocalRecipeImageDataLoader, toCompleteLoadWith expectedResult: RecipeImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let exp = expectation(description: "Wait for completion")
         
         _ = sut.loadImageData(from: anyURL()) { receivedResult in
@@ -113,6 +121,33 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
             exp.fulfill()
         }
         
+        action()
+        wait(for: [exp], timeout: 1.0)
+    }
+    
+    private func failure(_ error: LocalRecipeImageDataLoader.SaveError) -> LocalRecipeImageDataLoader.SaveResult {
+        return .failure(error)
+    }
+    
+    private func expect(_ sut: LocalRecipeImageDataLoader, toCompleteInsertionWith expectedResult: LocalRecipeImageDataLoader.SaveResult, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
+        let exp = expectation(description: "Wait for load completion")
+
+        sut.save(anyData(), for: anyURL()) { receivedResult in
+            switch (receivedResult, expectedResult) {
+            case (.success, .success):
+                break
+
+            case (.failure(let receivedError as LocalRecipeImageDataLoader.SaveError),
+                  .failure(let expectedError as LocalRecipeImageDataLoader.SaveError)):
+                XCTAssertEqual(receivedError, expectedError, file: file, line: line)
+
+            default:
+                XCTFail("Expected result \(expectedResult), got \(receivedResult) instead", file: file, line: line)
+            }
+
+            exp.fulfill()
+        }
+
         action()
         wait(for: [exp], timeout: 1.0)
     }
@@ -143,6 +178,10 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         
         func completeRetrieval(with data: Data?, at index: Int = 0) {
             retrievalCompletions[index](.success(data))
+        }
+        
+        func completeInsertion(with error: Error, at index: Int = 0) {
+            insertionCompletions[index](.failure(error))
         }
     }
 }
