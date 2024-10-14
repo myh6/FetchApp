@@ -61,19 +61,10 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
     func test_loadImageDataFromURL_failsOnStoreError() {
         let storeError = anyNSError()
         let (sut, store) = makeSUT()
-        let exp = expectation(description: "Wait for completion")
         
-        sut.loadImageData(from: anyURL()) { result in
-            if case let .failure(receivedError) = result {
-                XCTAssertEqual(receivedError as NSError, storeError)
-            } else {
-                XCTFail("Expect .failure, but got \(result) instead")
-            }
-            exp.fulfill()
+        expect(sut, toCompleteWith: .failure(storeError)) {
+            store.complete(with: storeError)
         }
-        
-        store.complete(with: storeError)
-        wait(for: [exp], timeout: 1.0)
     }
     
     //MARK: - Helpers
@@ -83,5 +74,22 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(store, file: file, line: line)
         return (sut, store)
+    }
+    
+    private func expect(_ sut: LocalRecipeImageDataLoader, toCompleteWith expectedResult: RecipeImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
+        let exp = expectation(description: "Wait for completion")
+        
+        sut.loadImageData(from: anyURL()) { receivedResult in
+            switch (receivedResult, expectedResult) {
+            case let (.failure(receivedError as NSError), .failure(expectedError as NSError)):
+                XCTAssertEqual(receivedError, expectedError, file: file, line: line)
+            default:
+                XCTFail("Haven't implemented yet")
+            }
+            exp.fulfill()
+        }
+        
+        action()
+        wait(for: [exp], timeout: 1.0)
     }
 }
