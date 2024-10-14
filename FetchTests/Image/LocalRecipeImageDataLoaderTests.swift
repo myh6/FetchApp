@@ -21,7 +21,8 @@ class LocalRecipeImageDataLoader {
     }
     
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) {
-        store.retrieve(dataForURL: url) { result in
+        store.retrieve(dataForURL: url) { [weak self] result in
+            guard self != nil else { return }
             switch result {
             case .failure:
                 completion(.failure(Error.failed))
@@ -96,6 +97,20 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         expect(sut, toCompleteWith: .success(imageData)) {
             store.completeRetrieval(with: imageData)
         }
+    }
+    
+    func test_loadImageDataFromURL_doesNotDeliversResultAfterSUTHasBeenDeallocated() {
+        let store = RecipeImageDataStore()
+        var sut: LocalRecipeImageDataLoader? = LocalRecipeImageDataLoader(store: store)
+        
+        var capturedResult = [RecipeImageDataLoader.Result]()
+        sut?.loadImageData(from: anyURL()) { result in
+            capturedResult.append(result)
+        }
+        
+        sut = nil
+        store.completeRetrieval(with: anyData())
+        XCTAssertTrue(capturedResult.isEmpty)
     }
     
     //MARK: - Helpers
