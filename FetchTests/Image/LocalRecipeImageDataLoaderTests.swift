@@ -13,7 +13,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
     func test_init_doesNotMessageStoreUponCreation() {
         let (_, store) = makeSUT()
         
-        XCTAssertTrue(store.receivedMessage.isEmpty)
+        XCTAssertTrue(store.messages.isEmpty)
     }
     
     func test_loadImageDataFromURL_requestsStoredDataForURL() {
@@ -22,7 +22,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         
         _ = sut.loadImageData(from: url) { _ in }
         
-        XCTAssertEqual(store.receivedMessage, [url])
+        XCTAssertEqual(store.messages, [.retrieve(dataFor: url)])
     }
     
     func test_loadImageDataFromURL_failsOnStoreError() {
@@ -79,6 +79,16 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         XCTAssertTrue(capturedResult.isEmpty)
     }
     
+    func test_saveImageDataForURL_requestsImageDataInsertionForURL() {
+        let (sut, store) = makeSUT()
+        let url = anyURL()
+        let data = anyData()
+        
+        sut.save(data, for: url) {}
+        
+        XCTAssertEqual(store.messages, [.insert(data: data, for: url)])
+    }
+    
     //MARK: - Helpers
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> (sut: LocalRecipeImageDataLoader, store: RecipeImageDataStoreSpy) {
         let store = RecipeImageDataStoreSpy()
@@ -108,21 +118,31 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
     }
     
     private class RecipeImageDataStoreSpy: RecipeImageDataStore {
-        private var messages = [(requestedURL: URL, completion: ((Result) -> Void)?)]()
-        var receivedMessage: [URL] {
-            messages.map(\.requestedURL)
+        enum Messages: Equatable {
+            case insert(data: Data, for: URL)
+            case retrieve(dataFor: URL)
         }
         
+        var messages = [Messages]()
+        private var completions = [(RecipeImageDataStore.Result) -> Void]()
+        private var insertionCompletions = [(InsertionResult) -> Void]()
+
         func retrieve(dataForURL url: URL, completion: @escaping (RecipeImageDataStore.Result) -> Void) {
-            messages.append((url, completion))
+            messages.append(.retrieve(dataFor: url))
+            completions.append(completion)
+        }
+        
+        func insert(_ data: Data, for url: URL, completion: @escaping (InsertionResult) -> Void) {
+            messages.append(.insert(data: data, for: url))
+            insertionCompletions.append(completion)
         }
         
         func completeRetrieval(with error: Error, at index: Int = 0) {
-            messages[index].completion?(.failure(error))
+            completions[index](.failure(error))
         }
         
         func completeRetrieval(with data: Data?, at index: Int = 0) {
-            messages[index].completion?(.success(data))
+            completions[index](.success(data))
         }
     }
 }

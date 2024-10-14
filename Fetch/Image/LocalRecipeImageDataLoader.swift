@@ -49,3 +49,9 @@ public class LocalRecipeImageDataLoader: RecipeImageDataLoader {
         return task
     }
 }
+
+extension LocalRecipeImageDataLoader {
+    public func save(_ data: Data, for url: URL, completion: @escaping () -> Void) {
+        store.insert(data, for: url) { _ in }
+    }
+}
