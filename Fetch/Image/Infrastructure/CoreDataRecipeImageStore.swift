@@ -30,8 +30,29 @@ public class CoreDataRecipeImageStore {
             throw StoreError.failedToLoadPersistentContainer(error)
         }
     }
+    
+    func perform(_ action: @escaping (NSManagedObjectContext) -> Void) {
+        let context = self.context
+        context.perform { action(context) }
+    }
 }
 
+extension CoreDataRecipeImageStore {
+    public func retrieve(dataForURL url: URL, completion: @escaping (RecipeImageDataStore.RetrievalResult) -> Void) {
+        completion(.success(.none))
+    }
+    
+    public func insert(_ data: Data, for url: URL, completion: @escaping (RecipeImageDataStore.InsertionResult) -> Void) {
+        perform { context in
+            completion(Result {
+                let cache = try RecipeImage.newInstance(with: url, in: context)
+                cache.url = url
+                cache.data = data
+                try context.save()
+            })
+        }
+    }
+}
 extension NSPersistentContainer {
     static func load(name: String, model: NSManagedObjectModel, url: URL) throws -> NSPersistentContainer {
         let description = NSPersistentStoreDescription(url: url)

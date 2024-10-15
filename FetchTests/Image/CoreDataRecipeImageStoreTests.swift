@@ -8,16 +8,7 @@
 import Foundation
 import XCTest
 import Fetch
-
-extension CoreDataRecipeImageStore {
-    func retrieve(dataForURL url: URL, completion: @escaping (RecipeImageDataStore.RetrievalResult) -> Void) {
-        completion(.success(.none))
-    }
-    
-    func insert(_ data: Data, for url: URL, completion: @escaping (RecipeImageDataStore.InsertionResult) -> Void) {
-        
-    }
-}
+import CoreData
 
 class CoreDataRecipeImageStoreTests: XCTestCase {
     
@@ -32,7 +23,7 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         let url = URL(string: "https://a-url.com")!
         let anothreURL = URL(string: "https://another-url.com")!
         
-        sut.insert(anyData(), for: url) {_ in }
+        insert(anyData(), for: url, into: sut)
         
         expect(sut, toCompleteRetrievalWith: .success(.none), for: anothreURL)
     }
@@ -57,6 +48,21 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
                 
             default:
                 XCTFail("Expected to complete with \(expectedResult), but got \(receivedResult) instead")
+            }
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 1.0)
+    }
+    
+    private func insert(_ data: Data, for url: URL, into sut: CoreDataRecipeImageStore, file: StaticString = #file, line: UInt = #line) {
+        let exp = expectation(description: "Wait for cache insertion")
+        sut.insert(data, for: url) { result in
+            switch result {
+            case let .failure(error):
+                XCTFail("Failed to save \(data) with error \(error)", file: file, line: line)
+            case .success:
+                break
             }
             exp.fulfill()
         }
