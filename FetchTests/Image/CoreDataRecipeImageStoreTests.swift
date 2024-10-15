@@ -57,6 +57,17 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         XCTAssertNil(insertionError)
     }
     
+    func test_insertDataForURL_deliversNoErrorOnNonEmptyCache() {
+        let sut = makeSUT()
+        let anotherURL = URL(string: "https://another-url.com")!
+        
+        insert(anyData(), for: anyURL(), into: sut)
+        
+        let insertionError = insert(anyData(), for: anotherURL, into: sut)
+        
+        XCTAssertNil(insertionError)
+    }
+    
     //MARK: - Helpers
     private func makeSUT() -> CoreDataRecipeImageStore {
         let storeURL = URL(filePath: "/dev/null")
