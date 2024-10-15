@@ -37,7 +37,7 @@ public class CoreDataRecipeImageStore {
     }
 }
 
-extension CoreDataRecipeImageStore {
+extension CoreDataRecipeImageStore: RecipeImageDataStore {
     public func retrieve(dataForURL url: URL, completion: @escaping (RecipeImageDataStore.RetrievalResult) -> Void) {
         perform { context in
             completion(Result {
