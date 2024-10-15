@@ -38,6 +38,17 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         expect(sut, toCompleteRetrievalWith: .success(data), for: url)
     }
     
+    func test_retrieveDataForURL_hasNoSideEffectsOnNonEmptyCache() {
+        let sut = makeSUT()
+        let url = anyURL()
+        let data = anyData()
+        
+        insert(data, for: url, into: sut)
+        
+        expect(sut, toCompleteRetrievalWith: .success(data), for: url)
+        expect(sut, toCompleteRetrievalWith: .success(data), for: url)
+    }
+    
     //MARK: - Helpers
     private func makeSUT() -> CoreDataRecipeImageStore {
         let storeURL = URL(filePath: "/dev/null")
