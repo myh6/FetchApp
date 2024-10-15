@@ -109,7 +109,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         let store = RecipeImageDataStoreSpy()
         var sut: LocalRecipeImageDataLoader? = LocalRecipeImageDataLoader(store: store)
         
-        var capturedResult = [LocalRecipeImageDataLoader.SaveResult]()
+        var capturedResult = [RecipeCache.Result]()
         sut?.save(anyData(), for: anyURL()) { capturedResult.append($0) }
         
         sut = nil
@@ -147,11 +147,11 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         wait(for: [exp], timeout: 1.0)
     }
     
-    private func failure(_ error: LocalRecipeImageDataLoader.SaveError) -> LocalRecipeImageDataLoader.SaveResult {
+    private func failure(_ error: LocalRecipeImageDataLoader.SaveError) -> RecipeCache.Result {
         return .failure(error)
     }
     
-    private func expect(_ sut: LocalRecipeImageDataLoader, toCompleteInsertionWith expectedResult: LocalRecipeImageDataLoader.SaveResult, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
+    private func expect(_ sut: LocalRecipeImageDataLoader, toCompleteInsertionWith expectedResult: RecipeCache.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let exp = expectation(description: "Wait for load completion")
 
         sut.save(anyData(), for: anyURL()) { receivedResult in
