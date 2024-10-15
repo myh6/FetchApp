@@ -68,6 +68,18 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         XCTAssertNil(insertionError)
     }
     
+    func test_insertDataForURL_overridesPreviouslyInsertedValue() {
+        let sut = makeSUT()
+        let url = anyURL()
+        let oldData = Data("old data".utf8)
+        let newData = Data("new data".utf8)
+        
+        insert(oldData, for: url, into: sut)
+        insert(newData, for: url, into: sut)
+        
+        expect(sut, toCompleteRetrievalWith: .success(newData), for: url)
+    }
+    
     //MARK: - Helpers
     private func makeSUT() -> CoreDataRecipeImageStore {
         let storeURL = URL(filePath: "/dev/null")
