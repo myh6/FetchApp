@@ -49,6 +49,14 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         expect(sut, toCompleteRetrievalWith: .success(data), for: url)
     }
     
+    func test_insertDataForURL_deliversNoErrorOnEmptyCache() {
+        let sut = makeSUT()
+        
+        let insertionError = insert(anyData(), for: anyURL(), into: sut)
+        
+        XCTAssertNil(insertionError)
+    }
+    
     //MARK: - Helpers
     private func makeSUT() -> CoreDataRecipeImageStore {
         let storeURL = URL(filePath: "/dev/null")
@@ -76,11 +84,14 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         wait(for: [exp], timeout: 1.0)
     }
     
-    private func insert(_ data: Data, for url: URL, into sut: CoreDataRecipeImageStore, file: StaticString = #file, line: UInt = #line) {
+    @discardableResult
+    private func insert(_ data: Data, for url: URL, into sut: CoreDataRecipeImageStore, file: StaticString = #file, line: UInt = #line) -> Error? {
+        var insertionError: Error?
         let exp = expectation(description: "Wait for cache insertion")
         sut.insert(data, for: url) { result in
             switch result {
             case let .failure(error):
+                insertionError = error
                 XCTFail("Failed to save \(data) with error \(error)", file: file, line: line)
             case .success:
                 break
@@ -89,5 +100,6 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         }
         
         wait(for: [exp], timeout: 1.0)
+        return insertionError
     }
 }
