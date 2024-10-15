@@ -28,6 +28,16 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         expect(sut, toCompleteRetrievalWith: .success(.none), for: anothreURL)
     }
     
+    func test_retrieveDataForURL_deliversStoredDataWhenMatches() {
+        let sut = makeSUT()
+        let url = anyURL()
+        let data = anyData()
+        
+        insert(data, for: url, into: sut)
+        
+        expect(sut, toCompleteRetrievalWith: .success(data), for: url)
+    }
+    
     //MARK: - Helpers
     private func makeSUT() -> CoreDataRecipeImageStore {
         let storeURL = URL(filePath: "/dev/null")

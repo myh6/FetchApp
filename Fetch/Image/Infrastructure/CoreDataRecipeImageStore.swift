@@ -39,7 +39,12 @@ public class CoreDataRecipeImageStore {
 
 extension CoreDataRecipeImageStore {
     public func retrieve(dataForURL url: URL, completion: @escaping (RecipeImageDataStore.RetrievalResult) -> Void) {
-        completion(.success(.none))
+        perform { context in
+            completion(Result {
+                let cache = try RecipeImage.find(url: url, in: context)
+                return cache?.data
+            })
+        }
     }
     
     public func insert(_ data: Data, for url: URL, completion: @escaping (RecipeImageDataStore.InsertionResult) -> Void) {
