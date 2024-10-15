@@ -80,6 +80,32 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         expect(sut, toCompleteRetrievalWith: .success(newData), for: url)
     }
     
+    func test_sideEffects_runSerially() {
+        let sut = makeSUT()
+        var operations = [XCTestExpectation]()
+        
+        let exp1 = expectation(description: "Operation 1")
+        sut.insert(anyData(), for: anyURL()) { _ in
+            operations.append(exp1)
+            exp1.fulfill()
+        }
+        
+        let exp2 = expectation(description: "Operation 2")
+        sut.insert(anyData(), for: anyURL()) { _ in
+            operations.append(exp2)
+            exp2.fulfill()
+        }
+        
+        let exp3 = expectation(description: "Operation 3")
+        sut.insert(anyData(), for: anyURL()) { _ in
+            operations.append(exp3)
+            exp3.fulfill()
+        }
+        
+        wait(for: [exp1, exp2, exp3], timeout: 5.0)
+        XCTAssertEqual(operations, [exp1, exp2, exp3])
+    }
+    
     //MARK: - Helpers
     private func makeSUT() -> CoreDataRecipeImageStore {
         let storeURL = URL(filePath: "/dev/null")
