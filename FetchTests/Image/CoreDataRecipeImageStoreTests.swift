@@ -13,6 +13,10 @@ extension CoreDataRecipeImageStore {
     func retrieve(dataForURL url: URL, completion: @escaping (RecipeImageDataStore.RetrievalResult) -> Void) {
         completion(.success(.none))
     }
+    
+    func insert(_ data: Data, for url: URL, completion: @escaping (RecipeImageDataStore.InsertionResult) -> Void) {
+        
+    }
 }
 
 class CoreDataRecipeImageStoreTests: XCTestCase {
@@ -21,6 +25,16 @@ class CoreDataRecipeImageStoreTests: XCTestCase {
         let sut = makeSUT()
         
         expect(sut, toCompleteRetrievalWith: .success(.none), for: anyURL())
+    }
+    
+    func test_retrieveDataForURL_deliversEmptyWhenStoredURLDoesNotMatch() {
+        let sut = makeSUT()
+        let url = URL(string: "https://a-url.com")!
+        let anothreURL = URL(string: "https://another-url.com")!
+        
+        sut.insert(anyData(), for: url) {_ in }
+        
+        expect(sut, toCompleteRetrievalWith: .success(.none), for: anothreURL)
     }
     
     //MARK: - Helpers
