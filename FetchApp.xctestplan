@@ -9,6 +9,15 @@
     }
   ],
   "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:FetchApp.xcodeproj",
+          "identifier" : "0FE295E72CBF0D8E005D1571",
+          "name" : "FetchApp"
+        }
+      ]
+    },
     "targetForVariableExpansion" : {
       "containerPath" : "container:FetchApp.xcodeproj",
       "identifier" : "0FE295E72CBF0D8E005D1571",
