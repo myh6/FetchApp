@@ -59,6 +59,12 @@ final class ImageLoaderWithFallbackCompositeTests: XCTestCase {
         expect(sut, toCompleteWith: .success(fallbackImage))
     }
     
+    func test_loadImageData_deliversErrorOnFallbackFailure() {
+        let sut = makeSUT(primaryResult: .failure(LocalRecipeImageDataLoader.LoadError.failed), fallbackResult: .failure(RemoteRecipeImageDataLoader.Error.connectivity))
+        
+        expect(sut, toCompleteWith: .failure(RemoteRecipeImageDataLoader.Error.connectivity))
+    }
+    
     //MARK: - Helpers
     private func makeSUT(primaryResult: RecipeImageDataLoader.Result, fallbackResult: RecipeImageDataLoader.Result, file: StaticString = #file, line: UInt = #line) -> ImageLoaderWithFallbackComposite {
         let primary = LoaderStub(result: primaryResult)
