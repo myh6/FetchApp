@@ -19,9 +19,10 @@ class CachingRecipeImageDataLoader: RecipeImageDataLoader {
     
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> RecipeImageDataLoaderTask {
         return loader.loadImageData(from: url) { [weak self] result in
+            guard let self else { return }
             switch result {
             case .success(let data):
-                self?.cache.save(data, for: url) { _ in }
+                cache.save(data, for: url) { _ in }
                 completion(.success(data))
             default:
                 break
@@ -34,22 +35,31 @@ final class CachingRecipeImageDataLoaderTests: XCTestCase {
     func test_loadImageData_cachesDataOnLoaderSuccess() {
         let url = URL(string: "https://any-url.com")!
         let image = Data("image data".utf8)
-        let (sut, _, cache) = makeSUT(loaderResult: .success(image))
+        let (sut, cache) = makeSUT(loaderResult: .success(image))
         
         _ = sut.loadImageData(from: url) { _ in }
         
         XCTAssertEqual(cache.messages, [.save(data: image, for: url)])
     }
     
+    func test_loadImageData_doesNotCacheDataOnLoaderFailure() {
+        let url = URL(string: "https://any-url.com")!
+        let (sut, cache) = makeSUT(loaderResult: .failure(NSError(domain: "any error", code: 0)))
+        
+        _ = sut.loadImageData(from: url) { _ in }
+        
+        XCTAssertTrue(cache.messages.isEmpty)
+    }
+    
     //MARK: - Helpers
-    private func makeSUT(loaderResult: RecipeImageDataLoader.Result, file: StaticString = #file, line: UInt = #line) -> (CachingRecipeImageDataLoader, LoaderSpy, CacheSpy) {
+    private func makeSUT(loaderResult: RecipeImageDataLoader.Result, file: StaticString = #file, line: UInt = #line) -> (CachingRecipeImageDataLoader, CacheSpy) {
         let loader = LoaderSpy(result: loaderResult)
         let cache = CacheSpy()
         let sut = CachingRecipeImageDataLoader(loader: loader, cache: cache)
         trackForMemoryLeaks(loader, file: file, line: line)
         trackForMemoryLeaks(cache, file: file, line: line)
         trackForMemoryLeaks(sut, file: file, line: line)
-        return (sut, loader, cache)
+        return (sut, cache)
     }
     
     private class LoaderSpy: RecipeImageDataLoader {
