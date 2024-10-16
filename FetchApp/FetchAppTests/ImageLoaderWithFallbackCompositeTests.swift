@@ -29,11 +29,12 @@ class ImageLoaderWithFallbackComposite: RecipeImageDataLoader {
     
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> any RecipeImageDataLoaderTask {
         var compositeTask = CompositeTask()
-        compositeTask.primary = primary.loadImageData(from: url) { result in
+        compositeTask.primary = primary.loadImageData(from: url) { [weak self] result in
+            guard let self else { return }
             if case .success(let imageData) = result {
                 completion(.success(imageData))
             } else {
-                compositeTask.fallback = self.fallback.loadImageData(from: url) { completion($0) }
+                compositeTask.fallback = fallback.loadImageData(from: url) { completion($0) }
             }
         }
         return compositeTask
