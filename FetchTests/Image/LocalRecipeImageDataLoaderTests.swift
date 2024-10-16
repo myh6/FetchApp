@@ -51,7 +51,7 @@ class LocalRecipeImageDataLoaderTests: XCTestCase {
         }
     }
     
-    func test_loadImageDataFromURL_deliversNotFoundAfterCancellingTask() {
+    func test_loadImageDataFromURL_doesNotDeliverCompletionAfterCancellingTask() {
         let (sut, store) = makeSUT()
         var received = [RecipeImageDataLoader.Result]()
         
