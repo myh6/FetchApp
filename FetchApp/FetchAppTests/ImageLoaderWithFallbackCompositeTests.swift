@@ -33,10 +33,9 @@ class ImageLoaderWithFallbackComposite: RecipeImageDataLoader {
             if case .success(let imageData) = result {
                 completion(.success(imageData))
             } else {
-                compositeTask.fallback = self.fallback.loadImageData(from: url) { result in }
+                compositeTask.fallback = self.fallback.loadImageData(from: url) { completion($0) }
             }
         }
-        
         return compositeTask
     }
 }
@@ -49,6 +48,15 @@ final class ImageLoaderWithFallbackCompositeTests: XCTestCase {
         let sut = makeSUT(primaryResult: .success(primaryImage), fallbackResult: .success(fallbackImage))
         
         expect(sut, toCompleteWith: .success(primaryImage))
+    }
+    
+    func test_loadImageData_delviersFallbackResultOnPrimaryFailure() {
+        let fallbackImage = Data("fallback data".utf8)
+        let sut = makeSUT(
+            primaryResult: .failure(LocalRecipeImageDataLoader.LoadError.failed),
+            fallbackResult: .success(fallbackImage))
+        
+        expect(sut, toCompleteWith: .success(fallbackImage))
     }
     
     //MARK: - Helpers
