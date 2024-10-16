@@ -7,29 +7,7 @@
 
 import XCTest
 import Fetch
-
-class CachingRecipeImageDataLoader: RecipeImageDataLoader {
-    private let loader: RecipeImageDataLoader
-    private let cache: RecipeCache
-    
-    init(loader: RecipeImageDataLoader, cache: RecipeCache) {
-        self.loader = loader
-        self.cache = cache
-    }
-    
-    func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> RecipeImageDataLoaderTask {
-        return loader.loadImageData(from: url) { [weak self] result in
-            guard let self else { return }
-            switch result {
-            case .success(let data):
-                cache.save(data, for: url) { _ in }
-                completion(.success(data))
-            default:
-                break
-            }
-        }
-    }
-}
+import FetchApp
 
 final class CachingRecipeImageDataLoaderTests: XCTestCase {
     func test_loadImageData_cachesDataOnLoaderSuccess() {
