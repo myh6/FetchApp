@@ -7,4 +7,7 @@
    <FileRef
       location = "group:FetchApp.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:../FetchApp.xctestplan">
+   </FileRef>
 </Workspace>

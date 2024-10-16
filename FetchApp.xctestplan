@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "DC01BC8F-90DF-4887-BFCA-3AFBBB40488D",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:FetchApp.xcodeproj",
+      "identifier" : "0FE295E72CBF0D8E005D1571",
+      "name" : "FetchApp"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:FetchApp.xcodeproj",
+        "identifier" : "0FE295F82CBF0D90005D1571",
+        "name" : "FetchAppTests"
+      }
+    }
+  ],
+  "version" : 1
+}
