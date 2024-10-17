@@ -6,19 +6,71 @@
 //
 
 import SwiftUI
+import Fetch
 
 struct ContentView: View {
+    @State private var recipes: [RecipeItem] = []
+    @State private var isLoading = false
+    private let recipeLoader: RecipeLoader
+    private let imageLoader: RecipeImageDataLoader
+    @State private var hasError: Bool = false
+    
+    init(recipeLoader: RecipeLoader, imageLoader: RecipeImageDataLoader) {
+        self.recipeLoader = recipeLoader
+        self.imageLoader = imageLoader
+    }
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        VStack(alignment: .leading) {
+            Text("Recipes")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding()
+            
+            List(recipes) { recipe in
+                RecipeDetailView(recipe: recipe, imageLoader: imageLoader)
+            }
+            .listStyle(.plain)
+            .onAppear {
+                loadRecipes()
+            }
+            .refreshable {
+                refreshRecipes()
+            }
+            .overlay{
+                if recipes.isEmpty && !isLoading {
+                    ContentUnavailableView("No recipes.", systemImage: "tray.fill")
+                }
+            }
         }
-        .padding()
+    }
+    
+    private func loadRecipes() {
+        isLoading = true
+        recipeLoader.load { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let receivedRecipes):
+                    recipes = receivedRecipes
+                case .failure(let error):
+                    hasError = true
+                    // error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    private func refreshRecipes() {
+        loadRecipes()
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(recipeLoader: DummyRecipeLoader(), imageLoader: DummyRecipeImageDataLoader())
+}
+
+struct DummyRecipeLoader: RecipeLoader {
+    func load(completion: @escaping (RecipeLoader.Result) -> Void) {
+        completion(.success([RecipeItem(id: UUID(), name: "Name 1", cuisine: "Cuisine 1", photoURL: URL(string: "https://example.com/photo1.jpg")!)]))
+    }
 }
