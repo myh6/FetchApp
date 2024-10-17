@@ -73,9 +73,9 @@ final class RemoteRecipeLoaderTests: XCTestCase {
     
     func test_load_deliversItemOn200HTTPResponseWithJSONItems() {
         let (sut, client) = makeSUT()
-        let (item, data) = makeItem(photoURLLarge: anyURL(), photoURLSmall: anyURL(), sourceURL: anyURL(), youtubeURL: anyURL())
+        let (_, data, model) = makeItem(photoURLLarge: anyURL(), photoURLSmall: anyURL(), sourceURL: anyURL(), youtubeURL: anyURL())
         
-        expect(sut, toCompleteWith: .success([item])) {
+        expect(sut, toCompleteWith: .success([model])) {
             client.complete(withStatusCode: 200, data: data)
         }
     }
@@ -112,11 +112,11 @@ final class RemoteRecipeLoaderTests: XCTestCase {
         return makeItemJSON([])
     }
     
-    private func makeItem(cuisine: String = "any cuisine", name: String = "any name", uuid: UUID = UUID(), photoURLLarge: URL, photoURLSmall: URL, sourceURL: URL, youtubeURL: URL) -> (item: RemoteRecipeItem, data: Data) {
+    private func makeItem(cuisine: String = "any cuisine", name: String = "any name", uuid: UUID = UUID(), photoURLLarge: URL, photoURLSmall: URL, sourceURL: URL, youtubeURL: URL) -> (item: RemoteRecipeItem, data: Data, model: RecipeItem) {
         let item = RemoteRecipeItem(cuisine: cuisine, name: name, photoUrlLarge: photoURLLarge, photoUrlSmall: photoURLSmall, sourceUrl: sourceURL, uuid: uuid, youtubeUrl: sourceURL)
         let json = makeFeedDict(cuisine: cuisine, name: name, photoURLLarge: photoURLLarge, photoURLSmall: photoURLSmall, sourceURL: sourceURL, uuid: uuid, youtubeURL: youtubeURL)
-        
-        return (item, makeItemJSON([json]))
+        let model = RecipeItem(id: uuid, name: name, cuisine: cuisine, photoURL: photoURLLarge)
+        return (item, makeItemJSON([json]), model)
     }
     
     private func makeFeedDict(cuisine: String? = nil, name: String? = "", photoURLLarge: URL? = nil, photoURLSmall: URL? = nil, sourceURL: URL? = nil, uuid: UUID = .init(), youtubeURL: URL? = nil) -> [String: Any] {

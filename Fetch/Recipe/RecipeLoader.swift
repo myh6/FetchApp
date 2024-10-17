@@ -8,6 +8,6 @@
 import Foundation
 
 public protocol RecipeLoader {
-    typealias Result = Swift.Result<[RemoteRecipeItem], Error>
+    typealias Result = Swift.Result<[RecipeItem], Error>
     func load(completion: @escaping (Result) -> Void)
 }
