@@ -6,13 +6,26 @@
 //
 
 import SwiftUI
+import Fetch
 
 struct RecipeDetailView: View {
+    let recipe: RecipeItem
+    private let imageLoader: RecipeImageDataLoader
+    
+    init(recipe: RecipeItem, imageLoader: RecipeImageDataLoader) {
+        self.recipe = recipe
+        self.imageLoader = imageLoader
+    }
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack {
+            Text(recipe.name)
+            RecipeImageView(url: recipe.photoURL, imageLoader: imageLoader)
+            Text(recipe.cuisine)
+        }
     }
 }
 
 #Preview {
-    RecipeDetailView()
+    RecipeDetailView(recipe: RecipeItem(id: UUID(), name: "Example name", cuisine: "Example cuisine", photoURL: URL(string: "https://any-url.com")!), imageLoader: DummyRecipeImageDataLoader())
 }
