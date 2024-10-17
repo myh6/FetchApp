@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct RecipeItem {
+public struct RecipeItem: Identifiable {
     public let id: UUID
     public let name: String
     public let cuisine: String
