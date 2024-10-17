@@ -30,10 +30,10 @@ final class CachingRecipeImageDataLoaderTests: XCTestCase {
     }
     
     //MARK: - Helpers
-    private func makeSUT(loaderResult: RecipeImageDataLoader.Result, file: StaticString = #file, line: UInt = #line) -> (CachingRecipeImageDataLoader, CacheSpy) {
+    private func makeSUT(loaderResult: RecipeImageDataLoader.Result, file: StaticString = #file, line: UInt = #line) -> (CachingRecipeImageDataLoaderDecorator, CacheSpy) {
         let loader = LoaderSpy(result: loaderResult)
         let cache = CacheSpy()
-        let sut = CachingRecipeImageDataLoader(loader: loader, cache: cache)
+        let sut = CachingRecipeImageDataLoaderDecorator(decoratee: loader, cache: cache)
         trackForMemoryLeaks(loader, file: file, line: line)
         trackForMemoryLeaks(cache, file: file, line: line)
         trackForMemoryLeaks(sut, file: file, line: line)

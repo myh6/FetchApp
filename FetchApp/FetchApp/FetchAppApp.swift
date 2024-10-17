@@ -29,7 +29,7 @@ struct FetchAppApp: App {
         let localImageRecipeLoader = LocalRecipeImageDataLoader(store: store)
         let remoteImageLoader = RemoteRecipeImageDataLoader(client: client)
         let imageLoaderWithFallback = ImageLoaderWithFallbackComposite(primary: localImageRecipeLoader, fallback: remoteImageLoader)
-        self.imageLoader = CachingRecipeImageDataLoader(loader: imageLoaderWithFallback, cache: localImageRecipeLoader)
+        self.imageLoader = CachingRecipeImageDataLoaderDecorator(decoratee: imageLoaderWithFallback, cache: localImageRecipeLoader)
     }
     
     var body: some Scene {
