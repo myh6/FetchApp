@@ -18,11 +18,17 @@ struct RecipeDetailView: View {
     }
     
     var body: some View {
-        VStack {
+        VStack(alignment: .leading) {
             Text(recipe.name)
+                .font(.headline)
             RecipeImageView(url: recipe.photoURL, imageLoader: imageLoader)
+                .frame(maxWidth: .infinity)
+                .aspectRatio(contentMode: .fit)
             Text(recipe.cuisine)
+                .font(.subheadline)
+                .foregroundStyle(.gray)
         }
+        .padding()
     }
 }
 
