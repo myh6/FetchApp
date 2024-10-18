@@ -78,32 +78,3 @@ struct RecipeImageView: View {
 #Preview("Loading") {
     RecipeImageView(url: URL(string: "https://any-url.com")!, imageLoader: DummyLoadingRecipeImageDataLoader())
 }
-
-struct DummyRecipeImageDataLoader: RecipeImageDataLoader {
-    func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> any Fetch.RecipeImageDataLoaderTask {
-        let data = UIImage(named: "S__179109932")?.pngData()
-        if let data {
-            completion(.success(data))
-        } else {
-            completion(.failure(NSError(domain: "error", code: 0)))
-        }
-        return DummyRecipeImageDataLoaderTask()
-    }
-}
-
-struct DummyErrorImageDataLoader: RecipeImageDataLoader {
-    func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> any Fetch.RecipeImageDataLoaderTask {
-        completion(.failure(NSError(domain: "error", code: 0)))
-        return DummyRecipeImageDataLoaderTask()
-    }
-}
-
-struct DummyLoadingRecipeImageDataLoader: RecipeImageDataLoader {
-    func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> any Fetch.RecipeImageDataLoaderTask {
-        return DummyRecipeImageDataLoaderTask()
-    }
-}
-
-private struct DummyRecipeImageDataLoaderTask: RecipeImageDataLoaderTask {
-    func cancel() {}
-}

@@ -73,15 +73,3 @@ struct ContentView: View {
 #Preview("Empty") {
     ContentView(recipeLoader: DummyEmptyRecipeLoader(), imageLoader: DummyRecipeImageDataLoader())
 }
-
-struct DummyRecipeLoader: RecipeLoader {
-    func load(completion: @escaping (RecipeLoader.Result) -> Void) {
-        completion(.success([RecipeItem(id: UUID(), name: "Name 1", cuisine: "Cuisine 1", photoURL: URL(string: "https://example.com/photo1.jpg")!)]))
-    }
-}
-
-struct DummyEmptyRecipeLoader: RecipeLoader {
-    func load(completion: @escaping (RecipeLoader.Result) -> Void) {
-        completion(.success([]))
-    }
-}
