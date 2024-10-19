@@ -21,6 +21,12 @@ struct DummyEmptyRecipeLoader: RecipeLoader {
     }
 }
 
+struct DummyErrorRecipeLoader: RecipeLoader {
+    func load(completion: @escaping (RecipeLoader.Result) -> Void) {
+        completion(.failure(RemoteRecipeLoader.Error.invalidData))
+    }
+}
+
 struct DummyRecipeImageDataLoader: RecipeImageDataLoader {
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> any Fetch.RecipeImageDataLoaderTask {
         let data = UIImage(named: "S__179109932")?.pngData()
@@ -35,7 +41,7 @@ struct DummyRecipeImageDataLoader: RecipeImageDataLoader {
 
 struct DummyErrorImageDataLoader: RecipeImageDataLoader {
     func loadImageData(from url: URL, completion: @escaping (RecipeImageDataLoader.Result) -> Void) -> any Fetch.RecipeImageDataLoaderTask {
-        completion(.failure(NSError(domain: "error", code: 0)))
+        completion(.failure(RemoteRecipeImageDataLoader.Error.invalidData))
         return DummyRecipeImageDataLoaderTask()
     }
 }
