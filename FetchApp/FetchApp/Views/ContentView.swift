@@ -38,7 +38,13 @@ struct ContentView: View {
                 refreshRecipes()
             }
             .overlay{
-                if recipes.isEmpty && !isLoading {
+                if hasError {
+                    VStack {
+                        Text("Error occured while loading image.")
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .padding()
+                    }
+                } else if recipes.isEmpty && !isLoading {
                     ContentUnavailableView("No recipes.", systemImage: "tray.fill")
                 }
             }
@@ -52,9 +58,8 @@ struct ContentView: View {
                 switch result {
                 case .success(let receivedRecipes):
                     recipes = receivedRecipes
-                case .failure(let error):
+                case .failure:
                     hasError = true
-                    // error.localizedDescription
                 }
                 isLoading = false
             }
@@ -72,4 +77,8 @@ struct ContentView: View {
 
 #Preview("Empty") {
     ContentView(recipeLoader: DummyEmptyRecipeLoader(), imageLoader: DummyRecipeImageDataLoader())
+}
+
+#Preview("Error") {
+    ContentView(recipeLoader: DummyErrorRecipeLoader(), imageLoader: DummyRecipeImageDataLoader())
 }

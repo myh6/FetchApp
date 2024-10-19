@@ -53,10 +53,9 @@ struct RecipeImageView: View {
                 switch result {
                 case .success(let data):
                     imageData = data
-                case .failure(let error):
+                case .failure:
                     imageData = nil
                     hasError = true
-                    // error.localizedDescription
                 }
             }
         }
