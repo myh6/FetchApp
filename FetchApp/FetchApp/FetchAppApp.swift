@@ -34,7 +34,11 @@ struct FetchAppApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView(recipeLoader: recipeLoader, imageLoader: imageLoader)
+            ContentView(recipeLoader: recipeLoader) { recipe in
+                RecipeDetailView(recipe: recipe) { url in
+                    RecipeImageView(viewModel: RecipeImageViewModel(imageLoader: imageLoader, url: url))
+                }
+            }
         }
     }
 }

@@ -9,15 +9,12 @@ import SwiftUI
 import Fetch
 
 struct ContentView: View {
-    @State private var recipes: [RecipeItem] = []
-    @State private var isLoading = false
-    private let recipeLoader: RecipeLoader
-    private let imageLoader: RecipeImageDataLoader
-    @State private var hasError: Bool = false
+    @StateObject private var viewModel: RecipeListViewModel
+    private let recipeDetailViewFactory: (RecipeItem) -> RecipeDetailView
     
-    init(recipeLoader: RecipeLoader, imageLoader: RecipeImageDataLoader) {
-        self.recipeLoader = recipeLoader
-        self.imageLoader = imageLoader
+    init(recipeLoader: RecipeLoader, recipeDetailViewFactory: @escaping (RecipeItem) -> RecipeDetailView) {
+        self._viewModel = StateObject(wrappedValue: RecipeListViewModel(recipeLoader: recipeLoader))
+        self.recipeDetailViewFactory = recipeDetailViewFactory
     }
     
     var body: some View {
@@ -27,58 +24,27 @@ struct ContentView: View {
                 .fontWeight(.bold)
                 .padding()
             
-            List(recipes) { recipe in
-                RecipeDetailView(recipe: recipe, imageLoader: imageLoader)
+            List(viewModel.recipes) { recipe in
+                recipeDetailViewFactory(recipe)
             }
             .listStyle(.plain)
             .onAppear {
-                loadRecipes()
+                viewModel.loadRecipes()
             }
             .refreshable {
-                refreshRecipes()
+                viewModel.refresh()
             }
             .overlay{
-                if hasError {
+                if viewModel.hasError {
                     VStack {
                         Text("Error occured while loading image.")
                         Image(systemName: "exclamationmark.triangle.fill")
                             .padding()
                     }
-                } else if recipes.isEmpty && !isLoading {
+                } else if viewModel.recipes.isEmpty && !viewModel.isLoading {
                     ContentUnavailableView("No recipes.", systemImage: "tray.fill")
                 }
             }
         }
     }
-    
-    private func loadRecipes() {
-        isLoading = true
-        recipeLoader.load { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let receivedRecipes):
-                    recipes = receivedRecipes
-                case .failure:
-                    hasError = true
-                }
-                isLoading = false
-            }
-        }
-    }
-    
-    private func refreshRecipes() {
-        loadRecipes()
-    }
-}
-
-#Preview {
-    ContentView(recipeLoader: DummyRecipeLoader(), imageLoader: DummyRecipeImageDataLoader())
-}
-
-#Preview("Empty") {
-    ContentView(recipeLoader: DummyEmptyRecipeLoader(), imageLoader: DummyRecipeImageDataLoader())
-}
-
-#Preview("Error") {
-    ContentView(recipeLoader: DummyErrorRecipeLoader(), imageLoader: DummyRecipeImageDataLoader())
 }

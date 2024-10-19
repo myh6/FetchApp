@@ -9,23 +9,18 @@ import SwiftUI
 import Fetch
 
 struct RecipeImageView: View {
-    let url: URL
-    private let imageLoader: RecipeImageDataLoader
-    @State private var imageData: Data?
-    @State private var imageLoadingTask: RecipeImageDataLoaderTask? = nil
-    @State private var hasError: Bool = false
+    @StateObject private var viewModel: RecipeImageViewModel
     
-    init(url: URL, imageLoader: RecipeImageDataLoader) {
-        self.url = url
-        self.imageLoader = imageLoader
+    init(viewModel: RecipeImageViewModel) {
+        self._viewModel = StateObject(wrappedValue: viewModel)
     }
     
     var body: some View {
-        if let data = imageData, let image = UIImage(data: data) {
+        if let data = viewModel.imageData, let image = UIImage(data: data) {
             Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
-        } else if hasError {
+        } else if viewModel.hasError {
             Rectangle()
                 .fill(Color.red)
                 .overlay {
@@ -38,42 +33,12 @@ struct RecipeImageView: View {
         } else {
             ShimmeringView()
                 .onAppear {
-                    startLoadingImage()
+                    viewModel.loadImage()
                 }
                 .onDisappear {
-                    cancelImageLoading()
+                    viewModel.cancelImageLoading()
                 }
             
         }
     }
-    
-    private func startLoadingImage() {
-        imageLoadingTask = imageLoader.loadImageData(from: url) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let data):
-                    imageData = data
-                case .failure:
-                    imageData = nil
-                    hasError = true
-                }
-            }
-        }
-    }
-    
-    private func cancelImageLoading() {
-        imageLoadingTask?.cancel()
-    }
-}
-
-#Preview("With image") {
-    RecipeImageView(url: URL(string: "https://any-url.com")!, imageLoader: DummyRecipeImageDataLoader())
-}
-
-#Preview("With error") {
-    RecipeImageView(url: URL(string: "https://any-url.com")!, imageLoader: DummyErrorImageDataLoader())
-}
-
-#Preview("Loading") {
-    RecipeImageView(url: URL(string: "https://any-url.com")!, imageLoader: DummyLoadingRecipeImageDataLoader())
 }

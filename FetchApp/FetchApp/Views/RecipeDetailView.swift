@@ -10,18 +10,18 @@ import Fetch
 
 struct RecipeDetailView: View {
     let recipe: RecipeItem
-    private let imageLoader: RecipeImageDataLoader
+    private let recipeImageFactory: (URL) -> RecipeImageView
     
-    init(recipe: RecipeItem, imageLoader: RecipeImageDataLoader) {
+    init(recipe: RecipeItem, recipeImageFactory: @escaping (URL) -> RecipeImageView) {
         self.recipe = recipe
-        self.imageLoader = imageLoader
+        self.recipeImageFactory = recipeImageFactory
     }
     
     var body: some View {
         VStack(alignment: .leading) {
             Text(recipe.name)
                 .font(.headline)
-            RecipeImageView(url: recipe.photoURL, imageLoader: imageLoader)
+            recipeImageFactory(recipe.photoURL)
                 .frame(maxWidth: .infinity)
                 .aspectRatio(contentMode: .fit)
             Text(recipe.cuisine)
@@ -30,8 +30,4 @@ struct RecipeDetailView: View {
         }
         .padding()
     }
-}
-
-#Preview {
-    RecipeDetailView(recipe: RecipeItem(id: UUID(), name: "Example name", cuisine: "Example cuisine", photoURL: URL(string: "https://any-url.com")!), imageLoader: DummyRecipeImageDataLoader())
 }
